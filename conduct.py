@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # *****************************************************************************
-# conduct - CONvenient Construct Tool
+# conduct - CONvenient Construction Tool
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -27,7 +27,7 @@ import logging
 import argparse
 
 def parseArgv(argv):
-    parser = argparse.ArgumentParser(description='conduct - CONvenient Construct Tool',
+    parser = argparse.ArgumentParser(description='conduct - CONvenient Construction Tool',
                                      conflict_handler='resolve')
 
     parser.add_argument('-v', '--verbose', action='store_true',
