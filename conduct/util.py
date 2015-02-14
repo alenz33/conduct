@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # *****************************************************************************
 # conduct - CONvenient Construction Tool
 #
@@ -21,44 +20,27 @@
 #
 # *****************************************************************************
 
-import sys
-import os
 import logging
-import argparse
+import subprocess
 
-from conduct import CopyBS
+## Util funcs
 
-def parseArgv(argv):
-    parser = argparse.ArgumentParser(description='conduct - CONvenient Construction Tool',
-                                     conflict_handler='resolve')
+def systemCall(cmd, sh=True, captureOutput=False, log=logging):
+    log.debug('System call [sh:%s][captureOutput:%s]: %s' \
+                  % (sh, captureOutput, cmd))
 
-    parser.add_argument('-v', '--verbose', action='store_true',
-        help='Verbose logging',
-        default=False)
-
-    return parser.parse_args(argv)
+    if captureOutput:
+        return subprocess.check_output(cmd, shell=sh)
+    subprocess.check_call(cmd, shell=sh)
 
 
-def main(argv=None):
-    if argv is None:
-        argv = sys.argv
+def dictToDataholder(d):
+    class Dataholder(object):
+        pass
 
-    # unbuffered output
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-    sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', 0)
+    result = Dataholder()
 
-    # parse cli args
-    args = parseArgv(argv[1:])
+    for key, value in d.iteritems():
+        result.key = value
 
-    # configure logging
-    logLevel = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=logLevel,
-                    format='[%(asctime)-15s][%(levelname)s]: %(message)s')
-
-
-
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    return result

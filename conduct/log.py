@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # *****************************************************************************
 # conduct - CONvenient Construction Tool
 #
@@ -21,44 +20,32 @@
 #
 # *****************************************************************************
 
-import sys
-import os
 import logging
-import argparse
-
-from conduct import CopyBS
-
-def parseArgv(argv):
-    parser = argparse.ArgumentParser(description='conduct - CONvenient Construction Tool',
-                                     conflict_handler='resolve')
-
-    parser.add_argument('-v', '--verbose', action='store_true',
-        help='Verbose logging',
-        default=False)
-
-    return parser.parse_args(argv)
 
 
-def main(argv=None):
-    if argv is None:
-        argv = sys.argv
-
-    # unbuffered output
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-    sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', 0)
-
-    # parse cli args
-    args = parseArgv(argv[1:])
-
-    # configure logging
-    logLevel = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=logLevel,
-                    format='[%(asctime)-15s][%(levelname)s]: %(message)s')
+## Logging namespaces
+BUILDSTEP = 'Step'
+CHAIN = 'Chain'
+SYSTEM = 'System'
 
 
+class ConductLog(logging.LoggerAdapter):
 
-    return 0
+    def __init__(self, name, namespace=None):
+        logging.LoggerAdapter.__init__(self, logging, {})
+
+        self._format = self._buildFormat(name, namespace)
 
 
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    def _buildFormat(self, name, namespace):
+        fmt = '['
+
+        if namespace is not None:
+            fmt += '%s|' % namespace
+        fmt += '%s]: ' % name
+        fmt += '%s'
+
+        return fmt
+
+    def process(self, msg, kwargs):
+        return self._format % msg, kwargs
