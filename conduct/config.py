@@ -16,36 +16,19 @@
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Module authors:
-#   Alexander Lenz <alexander.lenz@frm2.tum.de>
+#   Alexander Lenz <alexander.lenz@posteo.de>
 #
 # *****************************************************************************
 
-import logging
+from ConfigParser import SafeConfigParser
 
 
-## Logging namespaces
-BUILDSTEP = 'Step'
-CHAIN = 'Chain'
-SYSTEM = 'System'
+def loadConductConf(path='/etc/conduct.conf'):
+    parser = SafeConfigParser()
+    parser.readfp(open(path))
 
+    cfg = {'conduct' : {
+        option : value for option, value in parser.items('conduct')
+    }}
 
-class ConductLog(logging.LoggerAdapter):
-
-    def __init__(self, name, namespace=None):
-        logging.LoggerAdapter.__init__(self, logging, {})
-
-        self._format = self._buildFormat(name, namespace)
-
-
-    def _buildFormat(self, name, namespace):
-        fmt = '['
-
-        if namespace is not None:
-            fmt += '%s|' % namespace
-        fmt += '%s]: ' % name
-        fmt += '%s'
-
-        return fmt
-
-    def process(self, msg, kwargs):
-        return self._format % msg, kwargs
+    return cfg

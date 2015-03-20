@@ -17,7 +17,7 @@
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Module authors:
-#   Alexander Lenz <alexander.lenz@frm2.tum.de>
+#   Alexander Lenz <alexander.lenz@posteo.de>
 #
 # *****************************************************************************
 
@@ -26,17 +26,48 @@ import os
 import logging
 import argparse
 
-from conduct import CopyBS
+import conduct
+
+from conduct import loggers, config
+from conduct.buildsteps import CopyBS
 
 def parseArgv(argv):
     parser = argparse.ArgumentParser(description='conduct - CONvenient Construction Tool',
                                      conflict_handler='resolve')
 
-    parser.add_argument('-v', '--verbose', action='store_true',
-        help='Verbose logging',
-        default=False)
+    parser.add_argument('-v',
+                        '--verbose',
+                        action='store_true',
+                        help='Verbose logging',
+                        default=False)
+
+    parser.add_argument('-g',
+                        '--global-config',
+                        type=str,
+                        help='Global config file (conduct.conf)',
+                        default='/etc/conduct.conf')
+
+    parser.add_argument('-c',
+                        '--chain',
+                        type=str,
+                        help='Build chain',
+                        required=True)
 
     return parser.parse_args(argv)
+
+def initLogging(logname, daemonize=False):
+    globalcfg = conduct.cfg['conduct']
+
+    conduct.log = logging.getLogger(logname)
+    loglevel = loggers.LOGLEVELS[globalcfg['loglevel']]
+    conduct.log.setLevel(loglevel)
+
+    # console logging for fg process
+    if not daemonize:
+        conduct.log.addHandler(loggers.ColoredConsoleHandler())
+
+    # logfile for fg and bg process
+    conduct.log.addHandler(loggers.LogfileHandler(globalcfg['logdir'], logname))
 
 
 def main(argv=None):
@@ -50,10 +81,18 @@ def main(argv=None):
     # parse cli args
     args = parseArgv(argv[1:])
 
+    # load and store global config
+    conduct.cfg = config.loadConductConf(args.global_config)
+
     # configure logging
-    logLevel = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=logLevel,
-                    format='[%(asctime)-15s][%(levelname)s]: %(message)s')
+    initLogging(args.chain)
+
+    conduct.log.error('error test')
+    conduct.log.warning('warning test')
+    conduct.log.info('info test')
+    conduct.log.debug('debug test')
+
+    bs = CopyBS('copysth')
 
 
 

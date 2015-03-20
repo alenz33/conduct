@@ -20,9 +20,39 @@
 #
 # *****************************************************************************
 
-import logging
-
+import conduct
 from conduct.util import systemCall
 
-log = None
-cfg = None
+class Parameter(object):
+    def __init__(self, type=str, helpStr='Undescribed', required=False, default=None):
+        self._type = type
+        self._helpStr = helpStr,
+        self._required = required
+        self._default = default
+
+
+class BuildStep(object):
+    def __init__(self, name):
+        self.name = name
+        self.log = conduct.log.getChild(name)
+
+    def run(self, args):
+        pass
+
+
+class CopyBS(BuildStep):
+    parameters = {
+        'source' : Parameter(helpStr='Source to copy', required=True),
+        'destination' : Parameter(helpStr='Destination of copy', required=True),
+        'recursive' : Parameter(type=bool, helpStr='Copy directories recursively', required=True),
+    }
+
+    def run(self, args):
+        fromPath = args['source']
+        toPath = args['destination']
+        recursive = args['recursive']
+
+        cpArgs = '-r' if recursive else ''
+        cmd = 'cp %s %s %s' % (cpArgs, fromPath, toPath)
+
+        systemCall(cmd,log=self.log)

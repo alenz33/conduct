@@ -1,3 +1,4 @@
+#  -*- coding: utf-8 -*-
 # *****************************************************************************
 # conduct - CONvenient Construction Tool
 #
@@ -17,12 +18,51 @@
 #
 # Module authors:
 #   Alexander Lenz <alexander.lenz@posteo.de>
+#   Georg Brandl <georg@python.org>
 #
 # *****************************************************************************
 
-import logging
+"""Console coloring handlers."""
 
-from conduct.util import systemCall
 
-log = None
-cfg = None
+_codes = {}
+
+_attrs = {
+    'reset':     '39;49;00m',
+    'bold':      '01m',
+    'faint':     '02m',
+    'standout':  '03m',
+    'underline': '04m',
+    'blink':     '05m',
+}
+
+for _name, _value in _attrs.items():
+    _codes[_name] = '\x1b[' + _value
+
+_colors = [
+    ('black', 'darkgray'),
+    ('darkred', 'red'),
+    ('darkgreen', 'green'),
+    ('brown', 'yellow'),
+    ('darkblue', 'blue'),
+    ('purple', 'fuchsia'),
+    ('turquoise', 'teal'),
+    ('lightgray', 'white'),
+]
+
+for _i, (_dark, _light) in enumerate(_colors):
+    _codes[_dark] = '\x1b[%im' % (_i + 30)
+    _codes[_light] = '\x1b[%i;01m' % (_i + 30)
+
+
+def colorize(name, text):
+    return _codes.get(name, '') + text + _codes.get('reset', '')
+
+
+def colorcode(name):
+    return _codes.get(name, '')
+
+
+def nocolor():
+    for key in list(_codes):
+        _codes[key] = ''
