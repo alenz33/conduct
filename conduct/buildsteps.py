@@ -24,7 +24,7 @@ import pprint
 
 import conduct
 from conduct.util import systemCall
-from conduct.loggers import LOGLEVELS
+from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof
 
 
@@ -38,8 +38,10 @@ class BuildStepMeta(type):
         mcls._mergeDictAttr('parameters', bases, attrs)
         mcls._mergeDictAttr('outparameters', bases, attrs)
 
+        attrs['_params'] = {}
         mcls._createProperties(attrs['parameters'], attrs)
         mcls._createProperties(attrs['outparameters'], attrs)
+
 
         cls = type.__new__(mcls, name, bases, attrs)
 
@@ -59,8 +61,6 @@ class BuildStepMeta(type):
 
     @classmethod
     def _createProperties(mcls, paramDict, attrs):
-        attrs['_params'] = {}
-
         for name, definition in paramDict.iteritems():
             mcls._createProperty(name, definition, attrs)
 
@@ -99,7 +99,12 @@ class BuildStep(object):
     __metaclass__ = BuildStepMeta
 
     parameters = {
-        'loglevel' : Parameter(type=oneof(LOGLEVELS.keys()), helpStr='Log level', default='info'),
+        'description' : Parameter(type=str,
+                                  helpStr='Build step description',
+                                  default='Undescribed'),
+        'loglevel' : Parameter(type=oneof(LOGLEVELS.keys()),
+                               helpStr='Log level',
+                               default='info'),
     }
 
     outparameters = {
@@ -116,7 +121,8 @@ class BuildStep(object):
     def build(self):
         # log some bs stuff
         self.log.info('=' * 80)
-        self.log.info('Start build step: %s ...' % self.name)
+        self.log.info('Start build step: %s' % self.name)
+        self.log.info(self.description)
         self.log.info('-' * 80)
 
         resultStr = 'SUCCESS'
@@ -141,6 +147,10 @@ class BuildStep(object):
 
     def doWriteLoglevel(self, value):
         self.log.setLevel(LOGLEVELS[value])
+
+    def doReadLoglevel(self):
+        level = self.log.getEffectiveLevel()
+        return INVLOGLEVELS[level]
 
 
     def _initLogger(self):

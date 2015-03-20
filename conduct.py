@@ -93,6 +93,8 @@ def main(argv=None):
         BuildStep('s2', {}).build()
         BuildStep('s3', {}).build()
         bs = CopyBS('copysth', {})
+        bs.loglevel = 'debug'
+        bs.description = 'Some description'
         bs.build()
     except Exception as e:
         conduct.log.exception(e)

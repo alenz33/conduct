@@ -40,6 +40,7 @@ DATESTAMP_FMT = '%Y-%m-%d'
 SECONDS_PER_DAY = 60 * 60 * 24
 
 LOGLEVELS = {'debug': DEBUG, 'info': INFO, 'warning': WARNING, 'error': ERROR}
+INVLOGLEVELS = {value : key for key, value in LOGLEVELS.iteritems()}
 
 
 class ConsoleFormatter(Formatter):
