@@ -30,6 +30,7 @@ import conduct
 
 from conduct import loggers, config
 from conduct.buildsteps import SystemCallStep, BuildStep
+from conduct.chain import Chain
 
 def parseArgv(argv):
     parser = argparse.ArgumentParser(description='conduct - CONvenient Construction Tool',
@@ -87,27 +88,29 @@ def main(argv=None):
     # configure logging
     initLogging(args.chain)
 
+    chain = Chain(args.chain)
 
-    try:
-        BuildStep('s1', {}).build()
-        BuildStep('s2', {}).build()
-        BuildStep('s3', {}).build()
-        bs = SystemCallStep('scs', {
-            'command' : 'ls',
-            'captureoutput' : True,
-            'workingdir' : '/var/',
-            })
-        bs.build()
-        print(bs.commandoutput)
-        #bs = CopyBS('copysth', {})
-        #bs.loglevel = 'debug'
-        #bs.description = 'Some description'
-        #bs.build()
-    except Exception as e:
-        conduct.log.exception(e)
-        conduct.log.error('')
-        conduct.log.error('Build failed')
-        return 1
+
+    #try:
+    #    BuildStep('s1', {}).build()
+    #    BuildStep('s2', {}).build()
+    #    BuildStep('s3', {}).build()
+    #    bs = SystemCallStep('scs', {
+    #        'command' : 'ls',
+    #        'captureoutput' : True,
+    #        'workingdir' : '/var/',
+    #        })
+    #    bs.build()
+    #    print(bs.commandoutput)
+    #    #bs = CopyBS('copysth', {})
+    #    #bs.loglevel = 'debug'
+    #    #bs.description = 'Some description'
+    #    #bs.build()
+    #except Exception as e:
+    #    conduct.log.exception(e)
+    #    conduct.log.error('')
+    #    conduct.log.error('Build failed')
+    #    return 1
 
 
 
