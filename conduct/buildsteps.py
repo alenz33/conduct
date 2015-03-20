@@ -100,10 +100,10 @@ class BuildStep(object):
 
     parameters = {
         'description' : Parameter(type=str,
-                                  helpStr='Build step description',
+                                  description='Build step description',
                                   default='Undescribed'),
         'loglevel' : Parameter(type=oneof(LOGLEVELS.keys()),
-                               helpStr='Log level',
+                               description='Log level',
                                default='info'),
     }
 
@@ -163,9 +163,9 @@ class BuildStep(object):
 
 class CopyBS(BuildStep):
     parameters = {
-        'source' : Parameter(type=str, helpStr='Source to copy'),
-        'destination' : Parameter(type=str, helpStr='Destination of copy'),
-        'recursive' : Parameter(type=bool, helpStr='Copy directories recursively'),
+        'source' : Parameter(type=str, description='Source to copy'),
+        'destination' : Parameter(type=str, description='Destination of copy'),
+        'recursive' : Parameter(type=bool, description='Copy directories recursively'),
     }
 
     def run(self, args):

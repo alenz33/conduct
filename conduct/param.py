@@ -33,9 +33,9 @@ class Parameter(object):
 
     No default means mandatory.
     '''
-    def __init__(self, type=str, helpStr='Undescribed', default=None):
+    def __init__(self, type=str, description='Undescribed', default=None):
         self.type = type
-        self.helpStr = helpStr,
+        self.description = description,
         self.default = default
 
         if default is not None:
