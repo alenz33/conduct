@@ -94,9 +94,11 @@ def main(argv=None):
         BuildStep('s3', {}).build()
         bs = SystemCallStep('scs', {
             'command' : 'ls',
-            'captureoutput' : True
+            'captureoutput' : True,
+            'workingdir' : '/var/',
             })
         bs.build()
+        print(bs.commandoutput)
         #bs = CopyBS('copysth', {})
         #bs.loglevel = 'debug'
         #bs.description = 'Some description'

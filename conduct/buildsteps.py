@@ -20,7 +20,7 @@
 #
 # *****************************************************************************
 
-import pprint
+import os
 
 import conduct
 from conduct.util import systemCall
@@ -168,7 +168,10 @@ class SystemCallStep(BuildStep):
                               description='command to execute'),
         'captureoutput' : Parameter(type=bool,
                                     description='Capture command output',
-                                    default=True)
+                                    default=True),
+        'workingdir' : Parameter(type=str,
+                                 description='Working directory for command execution',
+                                 default='.'),
     }
 
     outparameters = {
@@ -178,10 +181,15 @@ class SystemCallStep(BuildStep):
     }
 
     def run(self, args):
-        self.commandoutput = systemCall(self.command,
-                                        captureOutput=self.captureoutput,
-                                        log=self.log)
+        cwd = os.getcwd()
 
+        try:
+            os.chdir(self.workingdir)
+            self.commandoutput = systemCall(self.command,
+                                            captureOutput=self.captureoutput,
+                                            log=self.log)
+        finally:
+            os.chdir(cwd)
 
 
 
