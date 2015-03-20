@@ -25,8 +25,9 @@ import subprocess
 
 ## Util funcs
 
-def systemCall(cmd, sh=True, captureOutput=False, log=logging):
-    log.debug('System call [sh:%s][captureOutput:%s]: %s' \
+def systemCall(cmd, sh=True, captureOutput=False, log=None):
+    if log is not None:
+        log.debug('System call [sh:%s][captureOutput:%s]: %s' \
                   % (sh, captureOutput, cmd))
 
     if captureOutput:

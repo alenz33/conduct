@@ -29,7 +29,7 @@ import argparse
 import conduct
 
 from conduct import loggers, config
-from conduct.buildsteps import CopyBS, BuildStep
+from conduct.buildsteps import SystemCallStep, BuildStep
 
 def parseArgv(argv):
     parser = argparse.ArgumentParser(description='conduct - CONvenient Construction Tool',
@@ -92,10 +92,15 @@ def main(argv=None):
         BuildStep('s1', {}).build()
         BuildStep('s2', {}).build()
         BuildStep('s3', {}).build()
-        bs = CopyBS('copysth', {})
-        bs.loglevel = 'debug'
-        bs.description = 'Some description'
+        bs = SystemCallStep('scs', {
+            'command' : 'ls',
+            'captureoutput' : True
+            })
         bs.build()
+        #bs = CopyBS('copysth', {})
+        #bs.loglevel = 'debug'
+        #bs.description = 'Some description'
+        #bs.build()
     except Exception as e:
         conduct.log.exception(e)
         conduct.log.error('')

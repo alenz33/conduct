@@ -25,7 +25,7 @@ import pprint
 import conduct
 from conduct.util import systemCall
 from conduct.loggers import LOGLEVELS, INVLOGLEVELS
-from conduct.param import Parameter, oneof
+from conduct.param import Parameter, oneof, none_or
 
 
 class BuildStepMeta(type):
@@ -110,12 +110,11 @@ class BuildStep(object):
     outparameters = {
     }
 
-    def __init__(self, name, paramCfg):
-        self._paramCfg = paramCfg
-
+    def __init__(self, name, paramValues):
         self.name = name
 
         self._initLogger()
+        self._applyParams(paramValues)
 
 
     def build(self):
@@ -152,28 +151,53 @@ class BuildStep(object):
         level = self.log.getEffectiveLevel()
         return INVLOGLEVELS[level]
 
-
     def _initLogger(self):
         self.log = conduct.log.getChild(self.name)
+        self.log.setLevel(LOGLEVELS[self.loglevel])
 
-        loglevel = self._paramCfg.get('loglevel',
-                                      self.parameters['loglevel'].default)
-        self.log.setLevel(LOGLEVELS[loglevel])
+    def _applyParams(self, paramValues):
+        for name, value in paramValues.iteritems():
+            setattr(self, name, value)
 
 
-class CopyBS(BuildStep):
+
+
+class SystemCallStep(BuildStep):
     parameters = {
-        'source' : Parameter(type=str, description='Source to copy'),
-        'destination' : Parameter(type=str, description='Destination of copy'),
-        'recursive' : Parameter(type=bool, description='Copy directories recursively'),
+        'command' : Parameter(type=str,
+                              description='command to execute'),
+        'captureoutput' : Parameter(type=bool,
+                                    description='Capture command output',
+                                    default=True)
+    }
+
+    outparameters = {
+        'commandoutput' : Parameter(type=none_or(str),
+                                    description='Command output (if captured)',
+                                    default=None)
     }
 
     def run(self, args):
-        fromPath = args['source']
-        toPath = args['destination']
-        recursive = args['recursive']
+        self.commandoutput = systemCall(self.command,
+                                        captureOutput=self.captureoutput,
+                                        log=self.log)
 
-        cpArgs = '-r' if recursive else ''
-        cmd = 'cp %s %s %s' % (cpArgs, fromPath, toPath)
 
-        systemCall(cmd,log=self.log)
+
+
+#class CopyBS(BuildStep):
+#    parameters = {
+#        'source' : Parameter(type=str, description='Source to copy'),
+#        'destination' : Parameter(type=str, description='Destination of copy'),
+#        'recursive' : Parameter(type=bool, description='Copy directories recursively'),
+#    }
+#
+#    def run(self, args):
+#        fromPath = args['source']
+#        toPath = args['destination']
+#        recursive = args['recursive']
+#
+#        cpArgs = '-r' if recursive else ''
+#        cmd = 'cp %s %s %s' % (cpArgs, fromPath, toPath)
+#
+#        systemCall(cmd,log=self.log)
