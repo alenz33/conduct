@@ -92,8 +92,8 @@ def main(argv=None):
         BuildStep('s1', {}).build()
         BuildStep('s2', {}).build()
         BuildStep('s3', {}).build()
-        #bs = CopyBS('copysth', {})
-        #bs.build()
+        bs = CopyBS('copysth', {})
+        bs.build()
     except Exception as e:
         conduct.log.exception(e)
         conduct.log.error('')

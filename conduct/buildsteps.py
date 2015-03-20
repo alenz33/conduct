@@ -20,15 +20,78 @@
 #
 # *****************************************************************************
 
+import pprint
+
 import conduct
 from conduct.util import systemCall
 from conduct.loggers import LOGLEVELS
 from conduct.param import Parameter, oneof
 
 
+class BuildStepMeta(type):
+    '''
+    Meta class for merging parameters and outparameters within the
+    inheritance tree.
+    '''
+
+    def __new__(mcls, name, bases, attrs):
+
+        mcls._mergeDictAttr('parameters', bases, attrs)
+        mcls._mergeDictAttr('outparameters', bases, attrs)
+
+        mcls._createProperties(attrs['parameters'], attrs)
+        mcls._createProperties(attrs['outparameters'], attrs)
+
+        cls = type.__new__(mcls, name, bases, attrs)
+
+        return cls
+
+    @classmethod
+    def _mergeDictAttr(mcls, name, bases, attrs):
+        attr = {}
+
+        for base in bases:
+            if hasattr(base, name):
+                attr.update(getattr(base, name))
+
+        attr.update(attrs.get(name, {}))
+
+        attrs[name] = attr
+
+    @classmethod
+    def _createProperties(mcls, paramDict, attrs):
+        for name, definition in paramDict.iteritems():
+            mcls._createProperty(name, definition, attrs)
+
+
+    @classmethod
+    def _createProperty(mcls, paramName, paramDef, attrs):
+        def readFunc(self):
+            return self._params[paramName]
+        readFunc.__name__ = '_readParam%s' % paramName.capitalize()
+
+        def writeFunc(self, value):
+            try:
+                self._params[paramName] = paramDef.type(value)
+            except ValueError as e:
+                raise ValueError('Cannot set %s: %s' % (paramName, e))
+        writeFunc.__name__ = '_writeParam%s' % paramName.capitalize()
+
+        attrs[paramName] = property(readFunc, writeFunc)
+
+
+
+
+
+
 class BuildStep(object):
+    __metaclass__ = BuildStepMeta
+
     parameters = {
         'loglevel' : Parameter(type=oneof(LOGLEVELS.keys()), helpStr='Log level', default='info'),
+    }
+
+    outparameters = {
     }
 
     def __init__(self, name, paramCfg):
