@@ -131,11 +131,7 @@ class LogfileFormatter(Formatter):
     extended_traceback = True
 
     def formatException(self, ei):
-        if issubclass(ei[0], (PyTango.DevError, PyTango.DevFailed)):
-            # For Tango exceptions, the traceback is not very interesting,
-            # since from the code's point of view everything worked.
-            s = str(ei[1])
-        elif self.extended_traceback:
+        if self.extended_traceback:
             s = format_extended_traceback(*ei)
         else:
             s = ''.join(traceback.format_exception(ei[0], ei[1], ei[2],
