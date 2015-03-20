@@ -75,8 +75,13 @@ class ConsoleFormatter(Formatter):
             fmtstr = self.colorize('fuchsia', '%s%%(levelname)s: %%(message)s'
                                    % namefmt)
         else:
-            fmtstr = self.colorize('red', '%s%%(levelname)s: %%(message)s'
-                                   % namefmt)
+            # Add exception type to error (if caused by exception)
+            msgPrefix = ''
+            if record.exc_info:
+                msgPrefix = '%s: ' % record.exc_info[0].__name__
+
+            fmtstr = self.colorize('red', '%s%%(levelname)s: %s%%(message)s'
+                                   % (namefmt, msgPrefix))
         fmtstr = datefmt + fmtstr
         if not getattr(record, 'nonl', False):
             fmtstr += '\n'
