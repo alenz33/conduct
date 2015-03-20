@@ -35,7 +35,6 @@ class BuildStepMeta(type):
     '''
 
     def __new__(mcls, name, bases, attrs):
-
         mcls._mergeDictAttr('parameters', bases, attrs)
         mcls._mergeDictAttr('outparameters', bases, attrs)
 
@@ -60,28 +59,40 @@ class BuildStepMeta(type):
 
     @classmethod
     def _createProperties(mcls, paramDict, attrs):
+        attrs['_params'] = {}
+
         for name, definition in paramDict.iteritems():
             mcls._createProperty(name, definition, attrs)
 
 
     @classmethod
     def _createProperty(mcls, paramName, paramDef, attrs):
-        def readFunc(self):
-            return self._params[paramName]
-        readFunc.__name__ = '_readParam%s' % paramName.capitalize()
+        capitalParamName = paramName.capitalize()
 
+        # set default value for parameter
+        if paramDef.default is not None:
+            attrs['_params'][paramName] = paramDef.default
+
+        # create parameter read function
+        def readFunc(self):
+            if hasattr(self, 'doRead%s' % capitalParamName):
+                return getattr(self, 'doRead%s' % capitalParamName)()
+            return self._params[paramName]
+        readFunc.__name__ = '_readParam%s' % capitalParamName
+
+        # create parameter write function
         def writeFunc(self, value):
             try:
-                self._params[paramName] = paramDef.type(value)
+                validValue = paramDef.type(value)
+                if hasattr(self, 'doWrite%s' % capitalParamName):
+                    getattr(self, 'doWrite%s' % capitalParamName)(validValue)
+                else:
+                    self._params[paramName] = paramDef.type(value)
             except ValueError as e:
                 raise ValueError('Cannot set %s: %s' % (paramName, e))
-        writeFunc.__name__ = '_writeParam%s' % paramName.capitalize()
-
+        writeFunc.__name__ = '_writeParam%s' % capitalParamName
+        # create parameter property
         attrs[paramName] = property(readFunc, writeFunc)
-
-
-
-
 
 
 class BuildStep(object):
@@ -99,14 +110,7 @@ class BuildStep(object):
 
         self.name = name
 
-        self.initLogger()
-
-    def initLogger(self):
-        self.log = conduct.log.getChild(self.name)
-
-        loglevel = self._paramCfg.get('loglevel',
-                                      self.parameters['loglevel'].default)
-        self.log.setLevel(LOGLEVELS[loglevel])
+        self._initLogger()
 
 
     def build(self):
@@ -134,6 +138,17 @@ class BuildStep(object):
 
     def run(self, args):
         pass
+
+    def doWriteLoglevel(self, value):
+        self.log.setLevel(LOGLEVELS[value])
+
+
+    def _initLogger(self):
+        self.log = conduct.log.getChild(self.name)
+
+        loglevel = self._paramCfg.get('loglevel',
+                                      self.parameters['loglevel'].default)
+        self.log.setLevel(LOGLEVELS[loglevel])
 
 
 class CopyBS(BuildStep):
