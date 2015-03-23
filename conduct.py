@@ -89,6 +89,7 @@ def main(argv=None):
     initLogging(args.chain)
 
     chain = Chain(args.chain)
+    chain.build()
 
 
     #try:

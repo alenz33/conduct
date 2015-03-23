@@ -23,6 +23,7 @@
 import logging
 
 from conduct.util import systemCall
+from conduct.buildsteps import *
 
 log = None
 cfg = None

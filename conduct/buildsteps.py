@@ -27,6 +27,8 @@ from conduct.util import systemCall
 from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof, none_or
 
+__all__ = ['BuildStep', 'SystemCallStep']
+
 
 class BuildStepMeta(type):
     '''
@@ -38,7 +40,7 @@ class BuildStepMeta(type):
         mcls._mergeDictAttr('parameters', bases, attrs)
         mcls._mergeDictAttr('outparameters', bases, attrs)
 
-        attrs['_params'] = {}
+        #attrs['_params'] = {}
         mcls._createProperties(attrs['parameters'], attrs)
         mcls._createProperties(attrs['outparameters'], attrs)
 
@@ -70,14 +72,14 @@ class BuildStepMeta(type):
         capitalParamName = paramName.capitalize()
 
         # set default value for parameter
-        if paramDef.default is not None:
-            attrs['_params'][paramName] = paramDef.default
+        #if paramDef.default is not None:
+        #    attrs['_params'][paramName] = paramDef.default
 
         # create parameter read function
         def readFunc(self):
             if hasattr(self, 'doRead%s' % capitalParamName):
                 return getattr(self, 'doRead%s' % capitalParamName)()
-            return self._params[paramName]
+            return self._params.get(paramName, paramDef.default)
         readFunc.__name__ = '_readParam%s' % capitalParamName
 
         # create parameter write function
@@ -113,6 +115,8 @@ class BuildStep(object):
     def __init__(self, name, paramValues):
         self.name = name
 
+        self._params = {}
+
         self._initLogger()
         self._applyParams(paramValues)
 
@@ -127,7 +131,7 @@ class BuildStep(object):
         resultStr = 'SUCCESS'
         try:
             # execute actual build actions
-            self.run({})
+            self.run()
         except Exception as exc:
             resultStr = 'FAILED'
             self.log.exception(exc)
@@ -141,7 +145,7 @@ class BuildStep(object):
         return True
 
 
-    def run(self, args):
+    def run(self):
         pass
 
     def doWriteLoglevel(self, value):
@@ -180,7 +184,7 @@ class SystemCallStep(BuildStep):
                                     default=None)
     }
 
-    def run(self, args):
+    def run(self):
         cwd = os.getcwd()
 
         try:

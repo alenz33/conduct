@@ -20,29 +20,34 @@
 #
 # *****************************************************************************
 
+# Docstring for full documentation of chain
 '''
 Simple chain to compile software thats build is based on autotools.
 '''
 
+import conduct
+
+# Short description which will be displayed on command line help.
+description = 'Simple chain to compile software thats build is based on autotools'
+
+# Chain specific parameters
 parameters = {
     'sourcedir' : Parameter(type=str,
                             description='Path to the source directory'),
 }
 
-steps = {
-    'autogen' : BuildStep('conduct.SystemCallStep',
-                          description='Generate configure via autogen.sh',
-                          workingdir=params.sourcedir,
-                          command='./autogen.sh',
-    ),
-    'configure' : BuildStep('conduct.SystemCallStep',
-                          description='Execute configure script',
-                          workingdir=params.sourcedir,
-                          command='./configure',
-    ),
-    'make' : BuildStep('conduct.SystemCallStep',
-                          description='Build software via make',
-                          workingdir=params.sourcedir,
-                          command='make',
-    ),
-}
+# Build steps
+steps.autogen   = Step('conduct.SystemCallStep',
+                        description='Generate configure via autogen.sh',
+                        #workingdir=ref.params.sourcedir,
+                        command='./autogen.sh')
+steps.configure = Step('conduct.SystemCallStep',
+                        description='Execute configure script',
+                        #workingdir=params.sourcedir,
+                        command='./configure')
+steps.make      = Step('conduct.SystemCallStep',
+                        description='Build software via make',
+                        #workingdir=params.sourcedir,
+                        command='make')
+
+

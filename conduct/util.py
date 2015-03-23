@@ -23,6 +23,25 @@
 import logging
 import subprocess
 
+from collections import OrderedDict
+
+## Utils classes
+
+class AttrStringifier(object):
+    def __getattr__(self, name):
+        return name
+
+# TODO: Better name
+class ObjectiveOrderedDict(object):
+    def __init__(self):
+        self.entries = OrderedDict()
+
+    def __setattr__(self, name, value):
+        if name == 'entries':
+            return object.__setattr__(self, name, value)
+        self.entries[name] = value
+
+
 ## Util funcs
 
 def systemCall(cmd, sh=True, captureOutput=False, log=None):
