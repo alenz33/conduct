@@ -22,25 +22,41 @@
 
 import pprint
 from os import path
+from collections import OrderedDict
 
 import conduct
 from conduct.param import Parameter
-from conduct.util import AttrStringifier, ObjectiveOrderedDict
+from conduct.util import AttrStringifier, ObjectiveOrderedDict, Referencer
 
 
 class Chain(object):
-    def __init__(self, name):
+    def __init__(self, name, paramValues):
         self.name = name
+        self.steps = OrderedDict()
+        self.params = {}
+
         self._chainDef = {}
-        self._steps = []
 
         self._loadChainFile()
+        self._applyParamValues(paramValues)
 
 
     def build(self):
-        for step in self._steps:
+        for step in self.steps.values():
             step.build()
 
+    @property
+    def parameters(self):
+        return self._chainDef['parameters']
+
+    def _applyParamValues(self, values):
+        for name, definition in self.parameters.iteritems():
+            if name in values:
+                self.params[name] = values[name]
+            elif definition.default is not None:
+                self.params[name] = definition.default
+            else:
+                raise RuntimeError('Mandatory parameter %s is missing' % name)
 
     def _loadChainFile(self):
         # determine chain file location
@@ -58,7 +74,8 @@ class Chain(object):
             'Parameter' : Parameter,
             'Step' : lambda cls, **params: ('step:%s' % cls, params),
             'Chain' : lambda cls, **params: ('chain:%s' % cls, params),
-            'steps' : ObjectiveOrderedDict()
+            'steps' : ObjectiveOrderedDict(),
+            'ref' : lambda refAdr: Referencer(refAdr),
         }
 
         # execute and extract all the interesting data
@@ -83,10 +100,10 @@ class Chain(object):
                 mod = __import__(clsMod)
                 cls = getattr(mod, clsName)
 
-                step = cls(name, definition[1])
-                self._steps.append(step)
+                self.steps[name] = cls(name, definition[1], self)
             else:
-                self._steps.append(Chain(entryName))
+                # TODO parameter forwarding
+                self.steps[name] = Chain(entryName)
 
 
 

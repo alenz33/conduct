@@ -23,7 +23,7 @@
 import os
 
 import conduct
-from conduct.util import systemCall
+from conduct.util import systemCall, Referencer
 from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof, none_or
 
@@ -79,7 +79,15 @@ class BuildStepMeta(type):
         def readFunc(self):
             if hasattr(self, 'doRead%s' % capitalParamName):
                 return getattr(self, 'doRead%s' % capitalParamName)()
-            return self._params.get(paramName, paramDef.default)
+
+            value = self._params.get(paramName, paramDef.default)
+
+            # resolve references
+            if isinstance(value, Referencer):
+                # resolve and validate
+                value = paramDef.type(value.resolve(self.chain))
+
+            return value
         readFunc.__name__ = '_readParam%s' % capitalParamName
 
         # create parameter write function
@@ -89,7 +97,10 @@ class BuildStepMeta(type):
                 if hasattr(self, 'doWrite%s' % capitalParamName):
                     getattr(self, 'doWrite%s' % capitalParamName)(validValue)
                 else:
-                    self._params[paramName] = paramDef.type(value)
+                    # special handling for references
+                    if not isinstance(value, Referencer):
+                        value = paramDef.type(value)
+                    self._params[paramName] = value
             except ValueError as e:
                 raise ValueError('Cannot set %s: %s' % (paramName, e))
         writeFunc.__name__ = '_writeParam%s' % capitalParamName
@@ -112,8 +123,9 @@ class BuildStep(object):
     outparameters = {
     }
 
-    def __init__(self, name, paramValues):
+    def __init__(self, name, paramValues, chain=None):
         self.name = name
+        self.chain = chain # Maintain a reference to the chain (for refs)
 
         self._params = {}
 

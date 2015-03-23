@@ -88,7 +88,7 @@ def main(argv=None):
     # configure logging
     initLogging(args.chain)
 
-    chain = Chain(args.chain)
+    chain = Chain(args.chain, {'sourcedir' : '/tmp'})
     chain.build()
 
 

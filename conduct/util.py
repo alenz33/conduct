@@ -27,6 +27,24 @@ from collections import OrderedDict
 
 ## Utils classes
 
+class Referencer(object):
+    def __init__(self, adr):
+        self.adr = adr
+
+    def resolve(self, chain):
+        parts = self.adr.split('.')
+        # chain.parameter
+        # or
+        # steps.stepname.parameter
+
+        if parts[0] == 'chain':
+            return chain.params[parts[1]]
+        elif parts[0] == 'steps':
+            step = chain.steps[parts[1]]
+            return getattr(step, parts[2])
+
+        raise RuntimeError('Could not resolve reference: %s' % self.adr)
+
 class AttrStringifier(object):
     def __getattr__(self, name):
         return name
