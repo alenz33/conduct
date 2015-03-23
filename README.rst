@@ -1,9 +1,11 @@
 CONvenient Construction Tool
 ============================
 
-Author: Alexander Lenz <alexander.lenz@posteo.de>
+`Documentation <conduct.rtfd.org>`_
+
+Author: `Alexander Lenz <mailto:alexander.lenz@posteo.de>`_
 
 
 Special thanks for contribution and other input to:
-	* Georg Brandl <georg@python.org>
-	* Dr. Enrico Faulhaber <enrico.faulhaber@arcor.de>
+	* `Georg Brandl <mailto:georg@python.org>`_
+	* `Dr. Enrico Faulhaber <mailto:enrico.faulhaber@arcor.de>`_
