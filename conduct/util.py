@@ -38,7 +38,7 @@ class Referencer(object):
 
     def evaluate(self, chain):
         result = self.fmt.format(chain=Dataholder(chain.params),
-                            steps=chain.steps)
+                            steps=Dataholder(chain.steps))
 
         return result
 
