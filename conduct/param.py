@@ -35,7 +35,7 @@ class Parameter(object):
     '''
     def __init__(self, type=str, description='Undescribed', default=None):
         self.type = type
-        self.description = description,
+        self.description = description
         self.default = default
 
         if default is not None:
