@@ -1,0 +1,15 @@
+planned behaviour
+
+pre build:
+ * boostrap
+ * prebuild check (all bs)
+
+build:
+ * per bs
+  * check
+  * run
+
+postbuild
+ * all bs - reversed order
+  * cleanup
+ * potential rollback (boostrap)
