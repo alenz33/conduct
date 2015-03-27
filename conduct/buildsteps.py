@@ -21,6 +21,9 @@
 # *****************************************************************************
 
 import os
+import ConfigParser
+
+from os import path
 
 import conduct
 from conduct.util import systemCall, Referencer
@@ -208,20 +211,61 @@ class SystemCallStep(BuildStep):
             os.chdir(cwd)
 
 
+class ConfigStep(BuildStep):
+    parameters = {
+        'path' : Parameter(type=str,
+                                 description='Path to the configuration file',
+                                 default='.'),
+        'format' : Parameter(type=oneof('ini', 'py', 'auto'),
+                     description='Format of config file',
+                     default='auto'),
+    }
 
-#class CopyBS(BuildStep):
-#    parameters = {
-#        'source' : Parameter(type=str, description='Source to copy'),
-#        'destination' : Parameter(type=str, description='Destination of copy'),
-#        'recursive' : Parameter(type=bool, description='Copy directories recursively'),
-#    }
-#
-#    def run(self, args):
-#        fromPath = args['source']
-#        toPath = args['destination']
-#        recursive = args['recursive']
-#
-#        cpArgs = '-r' if recursive else ''
-#        cmd = 'cp %s %s %s' % (cpArgs, fromPath, toPath)
-#
-#        systemCall(cmd,log=self.log)
+    outparameters = {
+        'config' : Parameter(type=none_or(str),
+                                    description='Command output (if captured)',
+                                    default={})
+    }
+
+    def run(self):
+        parseFuncs = {
+            'ini' : self._parseIni,
+            'py' : self._parsePy
+        }
+
+        configFormat = self.format
+
+        if configFormat == 'auto':
+            configFormat = path.splitext(self.path)[1]
+
+            if configFormat not in parseFuncs.keys():
+                raise RuntimeError('Unsupported configuration format: %s'
+                                   % configFormat)
+
+        self.config = parseFuncs[configFormat](self.path)
+
+    def _parseIni(self, path):
+        cfg = {}
+
+        parser = ConfigParser.SafeConfigParser()
+        parser.readfp(open(path))
+
+        for section in parser.sections():
+            cfg[section] = {}
+
+            for name, value in parser.items(section):
+                cfg[section][name] = value
+
+        return cfg
+
+
+    def _parsePy(self, path):
+        cfg = {}
+
+        content = open(path).read()
+
+        exec content in cfg
+        del cfg['__builtins__']
+
+        return cfg
+
