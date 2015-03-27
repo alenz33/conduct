@@ -37,17 +37,17 @@ parameters = {
 }
 
 # Build steps
-steps.autogen   = Step('conduct.SystemCallStep',
+steps.autogen   = Step('conduct.SystemCall',
                         description='Generate configure via autogen.sh',
-                        workingdir=ref('chain.sourcedir'),
+                        workingdir='{chain.sourcedir}',
                         command='./autogen.sh')
-steps.configure = Step('conduct.SystemCallStep',
+steps.configure = Step('conduct.SystemCall',
                         description='Execute configure script',
-                        workingdir=ref('chain.sourcedir'),
+                        workingdir='{chain.sourcedir}',
                         command='./configure')
-steps.make      = Step('conduct.SystemCallStep',
+steps.make      = Step('conduct.SystemCall',
                         description='Build software via make',
-                        workingdir=ref('chain.sourcedir'),
+                        workingdir='{chain.sourcedir}',
                         command='make')
 
 

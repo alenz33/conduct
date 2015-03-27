@@ -91,7 +91,7 @@ class BuildStepMeta(type):
             # resolve references
             if isinstance(value, Referencer):
                 # resolve and validate
-                value = paramDef.type(value.resolve(self.chain))
+                value = paramDef.type(value.evaluate(self.chain))
 
             return value
         readFunc.__name__ = '_readParam%s' % capitalParamName

@@ -33,11 +33,17 @@ from conduct.param import Parameter
 ## Utils classes
 
 class Referencer(object):
-    def __init__(self, adr):
-        self.adr = adr
+    def __init__(self, fmt):
+        self.fmt = fmt
 
-    def resolve(self, chain):
-        parts = self.adr.split('.')
+    def evaluate(self, chain):
+        result = self.fmt.format(chain=Dataholder(chain.params),
+                            steps=chain.steps)
+
+        return result
+
+    def resolve(self, adr, chain):
+        parts = adr.split('.')
         # chain.parameter
         # or
         # steps.stepname.parameter
@@ -48,7 +54,7 @@ class Referencer(object):
             step = chain.steps[parts[1]]
             return getattr(step, parts[2])
 
-        raise RuntimeError('Could not resolve reference: %s' % self.adr)
+        raise RuntimeError('Could not resolve reference: %s' % adr)
 
 class AttrStringifier(object):
     def __getattr__(self, name):
@@ -63,6 +69,15 @@ class ObjectiveOrderedDict(object):
         if name == 'entries':
             return object.__setattr__(self, name, value)
         self.entries[name] = value
+
+
+class Dataholder(object):
+    def __init__(self, modelDict):
+        self._modelDict = modelDict
+
+    def __getattr__(self, name):
+        if name in self._modelDict:
+            return self._modelDict[name]
 
 
 ## Util funcs
@@ -129,7 +144,6 @@ def loadChainDefinition(chainName):
         'Step' : lambda cls, **params: ('step:%s' % cls, params),
         'Chain' : lambda cls, **params: ('chain:%s' % cls, params),
         'steps' : ObjectiveOrderedDict(),
-        'ref' : lambda refAdr: Referencer(refAdr),
     }
 
     # execute and extract all the interesting data

@@ -20,13 +20,13 @@
 #
 # *****************************************************************************
 
-import pprint
+import re
 from os import path
 from collections import OrderedDict
 
 import conduct
 from conduct.param import Parameter
-from conduct.util import loadChainDefinition
+from conduct.util import loadChainDefinition, Referencer
 
 
 class Chain(object):
@@ -75,10 +75,20 @@ class Chain(object):
                 mod = __import__(clsMod)
                 cls = getattr(mod, clsName)
 
-                self.steps[name] = cls(name, definition[1], self)
+                params = self._createReferencers(definition[1])
+                self.steps[name] = cls(name, params, self)
             else:
                 # TODO parameter forwarding
                 self.steps[name] = Chain(entryName)
+
+    def _createReferencers(self, paramValues):
+        for paramName, paramValue in paramValues.iteritems():
+            if isinstance(paramValue, str) \
+                and re.match('.*?(\{(.*?)\})+.*?', paramValue):
+                    paramValues[paramName] = Referencer(paramValue)
+
+        return paramValues
+
 
 
 
