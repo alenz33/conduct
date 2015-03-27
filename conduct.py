@@ -31,7 +31,7 @@ import conduct
 from conduct import loggers, config
 from conduct.buildsteps import SystemCallStep, BuildStep
 from conduct.chain import Chain
-from conduct.util import loadChainDefinition, chainPathToName
+from conduct.util import loadChainDefinition, loadChainConfig, chainPathToName
 
 def processGlobalArgs(parser, argv):
     parser.add_argument('-v',
@@ -82,8 +82,7 @@ def addChainArgs(parser, chainName):
             flag,
             type=paramDef.type,
             help=paramDef.description,
-            required=(paramDef.default == None),
-            default=paramDef.default
+            #required=(paramDef.default == None), # may be part of param file
         )
 
 
@@ -138,13 +137,22 @@ def main(argv=None):
 
     chainDef = loadChainDefinition(args.chain)
 
-    paramValues = {}
+    # load chain config if any
+    paramValues = loadChainConfig(args.chain)
+
+    # override/apply cli params
     for param in chainDef['parameters'].keys():
+        val = getattr(args, param)
+        if val is not None:
             paramValues[param] = getattr(args, param)
 
 
-    chain = Chain(args.chain, paramValues)
-    chain.build()
+    try:
+        chain = Chain(args.chain, paramValues)
+        chain.build()
+    except Exception as e:
+        conduct.log.exception(e)
+        return 1
 
     return 0
 

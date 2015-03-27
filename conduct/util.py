@@ -114,7 +114,7 @@ def loadChainDefinition(chainName):
 
 
     # determine chain file location
-    chainDir = conduct.cfg['conduct']['chaindir']
+    chainDir = conduct.cfg['conduct']['chaindefdir']
     chainFile = path.join(chainDir, '%s.py' % chainNameToPath(chainName))
 
     if not path.exists(chainFile):
@@ -144,3 +144,13 @@ def loadChainDefinition(chainName):
     conduct.cfg['chains'][chainName] = chainDef
 
     return chainDef
+
+def loadChainConfig(chainName):
+    # determine chain file location
+    cfgDir = conduct.cfg['conduct']['chaincfgdir']
+    cfgFile = path.join(cfgDir, '%s.py' % chainNameToPath(chainName))
+
+    if path.exists(cfgFile):
+        return loadPyFile(cfgFile)
+    return {}
+
