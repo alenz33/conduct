@@ -31,11 +31,9 @@ import conduct
 from conduct import loggers, config
 from conduct.buildsteps import SystemCallStep, BuildStep
 from conduct.chain import Chain
+from conduct.util import loadChainFile
 
-def parseArgv(argv):
-    parser = argparse.ArgumentParser(description='conduct - CONvenient Construction Tool',
-                                     conflict_handler='resolve')
-
+def processGlobalArgs(parser, argv):
     parser.add_argument('-v',
                         '--verbose',
                         action='store_true',
@@ -51,8 +49,61 @@ def parseArgv(argv):
     parser.add_argument('-c',
                         '--chain',
                         type=str,
-                        help='Build chain',
+                        help='Desired chain',
                         required=True)
+
+    parser.add_argument('-h',
+                        '--help',
+                        help='Print help',
+                        action='store_true')
+
+    # parse global args
+    globalArgs, specArgs = parser.parse_known_args(argv)
+
+    # init config
+    # load and store global config
+    conduct.cfg = config.loadConductConf(globalArgs.global_config)
+
+    # handle help stuff
+    if globalArgs.help and not specArgs:
+        parser.print_help()
+        print('')
+        print('Available subcommands: build')
+        parser.exit()
+
+    return globalArgs
+
+def addChainArgs(parser, chainName):
+    chainDef = loadChainFile(chainName)
+
+    for paramName, paramDef in chainDef['parameters'].iteritems():
+        flag = '--%s' % paramName
+        parser.add_argument(
+            flag,
+            type=paramDef.type,
+            help=paramDef.description,
+            required=(paramDef.default == None),
+            default=paramDef.default
+        )
+
+
+
+def parseArgv(argv):
+    parser = argparse.ArgumentParser(description='conduct - CONvenient Construction Tool',
+                                     conflict_handler='resolve',
+                                     add_help=False)
+
+    globalArgs = processGlobalArgs(parser, argv)
+
+    subparsers = parser.add_subparsers(title='actions',
+                                       description='valid actions',
+                                       dest='action')
+
+    build = subparsers.add_parser('build', help='Build chain')
+
+    # add chain specific params
+    if globalArgs.chain:
+        addChainArgs(build, globalArgs.chain)
 
     return parser.parse_args(argv)
 
@@ -82,38 +133,18 @@ def main(argv=None):
     # parse cli args
     args = parseArgv(argv[1:])
 
-    # load and store global config
-    conduct.cfg = config.loadConductConf(args.global_config)
-
     # configure logging
     initLogging(args.chain)
 
-    chain = Chain(args.chain, {'sourcedir' : '/tmp'})
+    chainDef = loadChainFile(args.chain)
+
+    paramValues = {}
+    for param in chainDef['parameters'].keys():
+            paramValues[param] = getattr(args, param)
+
+
+    chain = Chain(args.chain, paramValues)
     chain.build()
-
-
-    #try:
-    #    BuildStep('s1', {}).build()
-    #    BuildStep('s2', {}).build()
-    #    BuildStep('s3', {}).build()
-    #    bs = SystemCallStep('scs', {
-    #        'command' : 'ls',
-    #        'captureoutput' : True,
-    #        'workingdir' : '/var/',
-    #        })
-    #    bs.build()
-    #    print(bs.commandoutput)
-    #    #bs = CopyBS('copysth', {})
-    #    #bs.loglevel = 'debug'
-    #    #bs.description = 'Some description'
-    #    #bs.build()
-    #except Exception as e:
-    #    conduct.log.exception(e)
-    #    conduct.log.error('')
-    #    conduct.log.error('Build failed')
-    #    return 1
-
-
 
     return 0
 

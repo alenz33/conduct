@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 import conduct
 from conduct.param import Parameter
-from conduct.util import AttrStringifier, ObjectiveOrderedDict, Referencer
+from conduct.util import loadChainFile
 
 
 class Chain(object):
@@ -59,32 +59,7 @@ class Chain(object):
                 raise RuntimeError('Mandatory parameter %s is missing' % name)
 
     def _loadChainFile(self):
-        # determine chain file location
-        chainDir = conduct.cfg['conduct']['chaindir']
-        chainFile = path.join(chainDir, '%s.py' % self.name)
-
-        if not path.exists(chainFile):
-            raise IOError('Chain file for \'%s\' not found (Should be: %s)'
-                          % (self.name, chainFile))
-
-        content = open(chainFile).read()
-
-        # prepare exection namespace
-        ns = {
-            'Parameter' : Parameter,
-            'Step' : lambda cls, **params: ('step:%s' % cls, params),
-            'Chain' : lambda cls, **params: ('chain:%s' % cls, params),
-            'steps' : ObjectiveOrderedDict(),
-            'ref' : lambda refAdr: Referencer(refAdr),
-        }
-
-        # execute and extract all the interesting data
-        exec content in ns
-
-        for entry in ['description', 'parameters']:
-            self._chainDef[entry] = ns[entry]
-
-        self._chainDef['steps'] = ns['steps'].entries
+        self._chainDef = loadChainFile(self.name)
 
         # create build steps
         self._createSteps()

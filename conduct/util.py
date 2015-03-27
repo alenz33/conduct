@@ -24,6 +24,10 @@ import logging
 import subprocess
 
 from collections import OrderedDict
+from os import path
+
+import conduct
+from conduct.param import Parameter
 
 ## Utils classes
 
@@ -82,3 +86,46 @@ def dictToDataholder(d):
         result.key = value
 
     return result
+
+def loadChainFile(chainName):
+    # caching
+    if 'chains' not in conduct.cfg:
+        conduct.cfg['chains'] = {}
+
+    if chainName in conduct.cfg['chains']:
+        return conduct.cfg['chains'][chainName]
+
+
+    # determine chain file location
+    chainDir = conduct.cfg['conduct']['chaindir']
+    chainFile = path.join(chainDir, '%s.py' % chainName)
+
+    if not path.exists(chainFile):
+        raise IOError('Chain file for \'%s\' not found (Should be: %s)'
+                      % (chainName, chainFile))
+
+    content = open(chainFile).read()
+
+    # prepare exection namespace
+    ns = {
+        'Parameter' : Parameter,
+        'Step' : lambda cls, **params: ('step:%s' % cls, params),
+        'Chain' : lambda cls, **params: ('chain:%s' % cls, params),
+        'steps' : ObjectiveOrderedDict(),
+        'ref' : lambda refAdr: Referencer(refAdr),
+    }
+
+    # execute and extract all the interesting data
+    exec content in ns
+
+    chainDef = {}
+
+    for entry in ['description', 'parameters']:
+        chainDef[entry] = ns[entry]
+
+    chainDef['steps'] = ns['steps'].entries
+
+    # cache
+    conduct.cfg['chains'][chainName] = chainDef
+
+    return chainDef
