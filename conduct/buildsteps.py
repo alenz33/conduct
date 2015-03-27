@@ -24,6 +24,7 @@ import os
 import time
 import hashlib
 import ConfigParser
+import shutil
 
 from os import path
 
@@ -32,7 +33,7 @@ from conduct.util import systemCall, Referencer
 from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof, none_or
 
-__all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir']
+__all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir', 'RmPath']
 
 
 class BuildStepMeta(type):
@@ -301,6 +302,30 @@ class TmpDir(BuildStep):
 
         os.makedirs(dest)
         self.tmpdir = dest
+
+
+class RmPath(BuildStep):
+    parameters = {
+        'path' : Parameter(type=str,
+                                 description='Path to remove'),
+        'recursive' : Parameter(type=bool,
+                                 description='Remove recursive',
+                                 default=True),
+    }
+
+    def run(self):
+        self.log.debug('Remove path: %s' % self.path)
+
+        if path.isfile(self.path):
+            os.remove(self.path)
+        elif path.isdir(self.path):
+            if self.recursive:
+                shutil.rmtree(self.path)
+            else:
+                os.rmdir(self.path)
+
+        if path.exists(self.path):
+            raise RuntimeError('Could not remove path')
 
 
 
