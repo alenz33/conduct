@@ -98,6 +98,8 @@ def loadPyFile(path, ns=None):
     if ns is None:
         ns = {}
 
+    ns['__file__'] = path
+
     exec open(path).read() in ns
 
     del ns['__builtins__']
@@ -149,6 +151,7 @@ def loadChainConfig(chainName):
     # determine chain file location
     cfgDir = conduct.cfg['conduct']['chaincfgdir']
     cfgFile = path.join(cfgDir, '%s.py' % chainNameToPath(chainName))
+    print(cfgFile)
 
     if path.exists(cfgFile):
         return loadPyFile(cfgFile)

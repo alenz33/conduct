@@ -21,6 +21,8 @@
 # *****************************************************************************
 
 import os
+import time
+import hashlib
 import ConfigParser
 
 from os import path
@@ -30,7 +32,7 @@ from conduct.util import systemCall, Referencer
 from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof, none_or
 
-__all__ = ['BuildStep', 'SystemCallStep']
+__all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir']
 
 
 class BuildStepMeta(type):
@@ -274,5 +276,31 @@ class Config(BuildStep):
         del cfg['__builtins__']
 
         return cfg
+
+
+class TmpDir(BuildStep):
+    parameters = {
+        'parentdir' : Parameter(type=str,
+                                 description='Path to parent directory',
+                                 default='/tmp'),
+    }
+
+    outparameters = {
+        'tmpdir' : Parameter(type=str,
+                                description='Created temporary directory',)
+    }
+
+    def run(self):
+        timehash = hashlib.sha1(str(time.time())).hexdigest()
+        dirhash = hashlib.sha1(self.parentdir).hexdigest()
+
+        dest = hashlib.sha1(timehash + dirhash).hexdigest()
+        dest = path.join(self.parentdir, dest)
+
+        self.log.debug('Create temporary dir: %s' % dest)
+
+        os.makedirs(dest)
+        self.tmpdir = dest
+
 
 

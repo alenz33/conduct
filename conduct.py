@@ -29,7 +29,6 @@ import argparse
 import conduct
 
 from conduct import loggers, config
-from conduct.buildsteps import SystemCallStep, BuildStep
 from conduct.chain import Chain
 from conduct.util import loadChainDefinition, loadChainConfig, chainPathToName
 
