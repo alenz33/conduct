@@ -2,6 +2,7 @@ CONvenient Construction Tool
 ============================
 
 `Documentation <http://conduct.rtfd.org>`_
+
 Author: `Alexander Lenz <mailto:alexander.lenz@posteo.de>`_
 
 
