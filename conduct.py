@@ -31,7 +31,7 @@ import conduct
 from conduct import loggers, config
 from conduct.buildsteps import SystemCallStep, BuildStep
 from conduct.chain import Chain
-from conduct.util import loadChainFile, chainPathToName
+from conduct.util import loadChainDefinition, chainPathToName
 
 def processGlobalArgs(parser, argv):
     parser.add_argument('-v',
@@ -74,7 +74,7 @@ def processGlobalArgs(parser, argv):
     return globalArgs
 
 def addChainArgs(parser, chainName):
-    chainDef = loadChainFile(chainName)
+    chainDef = loadChainDefinition(chainName)
 
     for paramName, paramDef in chainDef['parameters'].iteritems():
         flag = '--%s' % paramName
@@ -136,7 +136,7 @@ def main(argv=None):
     # configure logging
     initLogging(args.chain)
 
-    chainDef = loadChainFile(args.chain)
+    chainDef = loadChainDefinition(args.chain)
 
     paramValues = {}
     for param in chainDef['parameters'].keys():

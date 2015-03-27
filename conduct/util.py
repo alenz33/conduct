@@ -104,7 +104,7 @@ def loadPyFile(path, ns=None):
 
     return ns
 
-def loadChainFile(chainName):
+def loadChainDefinition(chainName):
     # caching
     if 'chains' not in conduct.cfg:
         conduct.cfg['chains'] = {}

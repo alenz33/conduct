@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 import conduct
 from conduct.param import Parameter
-from conduct.util import loadChainFile
+from conduct.util import loadChainDefinition
 
 
 class Chain(object):
@@ -37,7 +37,7 @@ class Chain(object):
 
         self._chainDef = {}
 
-        self._loadChainFile()
+        self._loadChainDefinition()
         self._applyParamValues(paramValues)
 
 
@@ -58,8 +58,8 @@ class Chain(object):
             else:
                 raise RuntimeError('Mandatory parameter %s is missing' % name)
 
-    def _loadChainFile(self):
-        self._chainDef = loadChainFile(self.name)
+    def _loadChainDefinition(self):
+        self._chainDef = loadChainDefinition(self.name)
 
         # create build steps
         self._createSteps()
