@@ -231,7 +231,7 @@ class Config(BuildStep):
     }
 
     outparameters = {
-        'config' : Parameter(type=none_or(str),
+        'config' : Parameter(type=dict,
                                     description='Command output (if captured)',
                                     default={})
     }
@@ -242,16 +242,23 @@ class Config(BuildStep):
             'py' : self._parsePy
         }
 
+        self.log.info('Parse config: %s' % self.path)
+
         configFormat = self.format
 
         if configFormat == 'auto':
-            configFormat = path.splitext(self.path)[1]
+            configFormat = path.splitext(self.path)[1][1:]
 
             if configFormat not in parseFuncs.keys():
                 raise RuntimeError('Unsupported configuration format: %s'
                                    % configFormat)
 
+        self.log.debug('Used format: %s' % configFormat)
+
+
         self.config = parseFuncs[configFormat](self.path)
+
+        self.log.debug('Parsed config: %r' % self.config)
 
     def _parseIni(self, path):
         cfg = {}
@@ -298,7 +305,7 @@ class TmpDir(BuildStep):
         dest = hashlib.sha1(timehash + dirhash).hexdigest()
         dest = path.join(self.parentdir, dest)
 
-        self.log.debug('Create temporary dir: %s' % dest)
+        self.log.info('Create temporary dir: %s' % dest)
 
         os.makedirs(dest)
         self.tmpdir = dest
@@ -314,7 +321,7 @@ class RmPath(BuildStep):
     }
 
     def run(self):
-        self.log.debug('Remove path: %s' % self.path)
+        self.log.info('Remove path: %s' % self.path)
 
         if path.isfile(self.path):
             os.remove(self.path)
