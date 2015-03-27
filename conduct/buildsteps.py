@@ -31,9 +31,10 @@ from os import path
 import conduct
 from conduct.util import systemCall, Referencer
 from conduct.loggers import LOGLEVELS, INVLOGLEVELS
-from conduct.param import Parameter, oneof, none_or
+from conduct.param import Parameter, oneof, none_or, dictof, listof, tupleof
 
-__all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir', 'RmPath']
+__all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir', 'RmPath',
+           'Partitioning']
 
 
 class BuildStepMeta(type):
@@ -333,6 +334,50 @@ class RmPath(BuildStep):
 
         if path.exists(self.path):
             raise RuntimeError('Could not remove path')
+
+
+class Partitioning(BuildStep):
+    parameters = {
+        'dev' : Parameter(type=str,
+                                 description='Path to the device file'),
+        'partitions' : Parameter(type=listof(int),
+                                 description='List of partition sizes (in MB)')
+    }
+
+    def run(self):
+        cmds = []
+
+        for i in range(len(self.partitions)):
+            cmds += self._createPartitionCmds(i+1, self.partitions[i])
+
+        cmds.append('p') # print partition table
+        cmds.append('w') # write partition table
+        cmds.append('') # confirm
+
+        shCmd = '(%s)' % ''.join([ 'echo %s;' % entry for entry in cmds])
+        shCmd += '| fdisk %s 2>&1' % self.dev
+
+        output = systemCall(shCmd, captureOutput=True, log=self.log)
+        self.log.debug(output)
+
+    def _createPartitionCmds(self, index, size):
+        cmds = [
+            'n' # new partition
+        ]
+
+        if index < 4:
+            cmds.append('p') # primary
+        else:
+            cmds.append('e') # extended
+
+        cmds.append(str(index)) # partition number
+        cmds.append('') # confirm
+
+        cmds.append('+%dM' % size) # partition size
+
+        return cmds
+
+
 
 
 
