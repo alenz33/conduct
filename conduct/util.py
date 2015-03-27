@@ -94,6 +94,15 @@ def chainPathToName(path):
 def chainNameToPath(name):
     return name.replace(':', os.sep)
 
+def loadPyFile(path, ns=None):
+    if ns is None:
+        ns = {}
+
+    exec open(path).read() in ns
+
+    del ns['__builtins__']
+
+    return ns
 
 def loadChainFile(chainName):
     # caching
@@ -112,8 +121,6 @@ def loadChainFile(chainName):
         raise IOError('Chain file for \'%s\' not found (Should be: %s)'
                       % (chainName, chainFile))
 
-    content = open(chainFile).read()
-
     # prepare exection namespace
     ns = {
         'Parameter' : Parameter,
@@ -124,7 +131,7 @@ def loadChainFile(chainName):
     }
 
     # execute and extract all the interesting data
-    exec content in ns
+    ns = loadPyFile(chainFile, ns)
 
     chainDef = {}
 
