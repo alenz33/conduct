@@ -151,7 +151,6 @@ def loadChainConfig(chainName):
     # determine chain file location
     cfgDir = conduct.cfg['conduct']['chaincfgdir']
     cfgFile = path.join(cfgDir, '%s.py' % chainNameToPath(chainName))
-    print(cfgFile)
 
     if path.exists(cfgFile):
         return loadPyFile(cfgFile)
