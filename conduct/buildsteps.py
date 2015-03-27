@@ -181,7 +181,10 @@ class BuildStep(object):
 
 
 
-class SystemCallStep(BuildStep):
+class SystemCall(BuildStep):
+    '''
+    Build step to execute given shell command.
+    '''
     parameters = {
         'command' : Parameter(type=str,
                               description='command to execute'),
@@ -211,7 +214,10 @@ class SystemCallStep(BuildStep):
             os.chdir(cwd)
 
 
-class ConfigStep(BuildStep):
+class Config(BuildStep):
+    '''
+    Build step to read given configuration file.
+    '''
     parameters = {
         'path' : Parameter(type=str,
                                  description='Path to the configuration file',
@@ -268,4 +274,5 @@ class ConfigStep(BuildStep):
         del cfg['__builtins__']
 
         return cfg
+
 
