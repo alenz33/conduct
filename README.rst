@@ -10,6 +10,7 @@ with some load balancer (e.g. via Jenkins).
 
 The idea is to checkout/install conduct to some system, give it a build chain config and the necessary
 parameters, and everything else shall be done automatically.
+
 That means:
     * Bootstrapping of necessary tools
     * Configuring necessary tools
