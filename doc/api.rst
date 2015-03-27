@@ -1,56 +1,56 @@
 Conduct API
 ===========
 
-conduct.buildsteps module
--------------------------
+Build steps
+-----------
 
 .. automodule:: conduct.buildsteps
     :members:
     :undoc-members:
     
 
-conduct.chain module
---------------------
+Build chain
+-----------
 
 .. automodule:: conduct.chain
     :members:
     :undoc-members:
     
 
-conduct.colors module
----------------------
+Colorizing stuff
+----------------
 
 .. automodule:: conduct.colors
     :members:
     :undoc-members:
     
 
-conduct.config module
----------------------
+Conduct configuration access
+----------------------------
 
 .. automodule:: conduct.config
     :members:
     :undoc-members:
     
 
-conduct.loggers module
-----------------------
+Custom logging
+--------------
 
 .. automodule:: conduct.loggers
     :members:
     :undoc-members:
     
 
-conduct.param module
---------------------
+Build step and chain parameters
+-------------------------------
 
 .. automodule:: conduct.param
     :members:
     :undoc-members:
     
 
-conduct.util module
--------------------
+Utility stuff
+-------------
 
 .. automodule:: conduct.util
     :members:
@@ -58,10 +58,4 @@ conduct.util module
     
 
 
-Module contents
----------------
-
-.. automodule:: conduct
-    :members:
-    :undoc-members:
     
