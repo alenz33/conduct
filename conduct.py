@@ -31,7 +31,7 @@ import conduct
 from conduct import loggers, config
 from conduct.buildsteps import SystemCallStep, BuildStep
 from conduct.chain import Chain
-from conduct.util import loadChainFile
+from conduct.util import loadChainFile, chainPathToName
 
 def processGlobalArgs(parser, argv):
     parser.add_argument('-v',
@@ -48,7 +48,7 @@ def processGlobalArgs(parser, argv):
 
     parser.add_argument('-c',
                         '--chain',
-                        type=str,
+                        type=chainPathToName,
                         help='Desired chain',
                         required=True)
 

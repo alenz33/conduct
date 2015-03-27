@@ -20,6 +20,7 @@
 #
 # *****************************************************************************
 
+import os
 import logging
 import subprocess
 
@@ -87,6 +88,13 @@ def dictToDataholder(d):
 
     return result
 
+def chainPathToName(path):
+    return path.replace(os.sep, ':')
+
+def chainNameToPath(name):
+    return name.replace(':', os.sep)
+
+
 def loadChainFile(chainName):
     # caching
     if 'chains' not in conduct.cfg:
@@ -98,7 +106,7 @@ def loadChainFile(chainName):
 
     # determine chain file location
     chainDir = conduct.cfg['conduct']['chaindir']
-    chainFile = path.join(chainDir, '%s.py' % chainName)
+    chainFile = path.join(chainDir, '%s.py' % chainNameToPath(chainName))
 
     if not path.exists(chainFile):
         raise IOError('Chain file for \'%s\' not found (Should be: %s)'
