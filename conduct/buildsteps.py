@@ -44,10 +44,11 @@ class BuildStepMeta(type):
     '''
 
     def __new__(mcls, name, bases, attrs):
+        mcls._storeClsToParams(name, attrs)
+
         mcls._mergeDictAttr('parameters', bases, attrs)
         mcls._mergeDictAttr('outparameters', bases, attrs)
 
-        #attrs['_params'] = {}
         mcls._createProperties(attrs['parameters'], attrs)
         mcls._createProperties(attrs['outparameters'], attrs)
 
@@ -55,6 +56,13 @@ class BuildStepMeta(type):
         cls = type.__new__(mcls, name, bases, attrs)
 
         return cls
+
+    @classmethod
+    def _storeClsToParams(mcls, name, attrs):
+        for param in attrs['parameters'].values():
+            param.classname = '%s.%s' % (attrs['__module__'], name)
+
+
 
     @classmethod
     def _mergeDictAttr(mcls, name, bases, attrs):

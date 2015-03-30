@@ -37,6 +37,7 @@ class Parameter(object):
         self.type = type
         self.description = description
         self.default = default
+        self.classname = None
 
         if default is not None:
             self.validate(default)
