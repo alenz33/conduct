@@ -37,17 +37,28 @@ class Chain(object):
 
         self._chainDef = {}
 
+        self._initLogger()
         self._loadChainDefinition()
         self._applyParamValues(paramValues)
 
 
     def build(self):
-        for step in self.steps.values():
-            step.build()
+        try:
+            for step in self.steps.values():
+                step.build()
+        except Exception as e:
+            self.log.error('BUILD FAILED')
+
+        for step in reversed(self.steps.values()):
+            step.cleanupBuild()
+
 
     @property
     def parameters(self):
         return self._chainDef['parameters']
+
+    def _initLogger(self):
+        self.log = conduct.log.getChild(self.name, True)
 
     def _applyParamValues(self, values):
         for name, definition in self.parameters.iteritems():

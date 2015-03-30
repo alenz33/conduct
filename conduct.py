@@ -105,10 +105,12 @@ def parseArgv(argv):
 
     return parser.parse_args(argv)
 
-def initLogging(logname, daemonize=False):
+def initLogging(daemonize=False):
     globalcfg = conduct.cfg['conduct']
 
-    conduct.log = logging.getLogger(logname)
+    logging.Logger.manager.setLoggerClass(loggers.ConductLogger)
+    # getChild necessary to get the correct logger class
+    conduct.log = logging.getLogger().getChild('conduct')
     loglevel = loggers.LOGLEVELS[globalcfg['loglevel']]
     conduct.log.setLevel(loglevel)
 
@@ -117,7 +119,7 @@ def initLogging(logname, daemonize=False):
         conduct.log.addHandler(loggers.ColoredConsoleHandler())
 
     # logfile for fg and bg process
-    conduct.log.addHandler(loggers.LogfileHandler(globalcfg['logdir'], logname))
+    conduct.log.addHandler(loggers.LogfileHandler(globalcfg['logdir'], 'conduct'))
 
 
 def main(argv=None):
@@ -132,7 +134,7 @@ def main(argv=None):
     args = parseArgv(argv[1:])
 
     # configure logging
-    initLogging(args.chain)
+    initLogging()
 
     chainDef = loadChainDefinition(args.chain)
 
@@ -146,6 +148,7 @@ def main(argv=None):
             paramValues[param] = getattr(args, param)
 
 
+    conduct.log.info('Build chain: %s' % args.chain)
     try:
         chain = Chain(args.chain, paramValues)
         chain.build()

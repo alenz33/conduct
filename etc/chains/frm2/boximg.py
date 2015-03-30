@@ -53,8 +53,4 @@ steps.partition   = Step('conduct.Partitioning',
                         dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img',
                         partitions=[3,5])
 
-steps.cleanup   = Step('conduct.RmPath',
-                        description='Cleanup tmp dir',
-                        path='{steps.tmpdir.tmpdir}')
-
 

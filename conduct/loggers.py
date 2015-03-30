@@ -30,7 +30,7 @@ import traceback
 import logging
 
 from os import path
-from logging import Formatter, Handler, DEBUG, INFO, WARNING, ERROR
+from logging import Logger, Formatter, Handler, DEBUG, INFO, WARNING, ERROR
 
 from conduct import colors
 
@@ -41,6 +41,30 @@ SECONDS_PER_DAY = 60 * 60 * 24
 
 LOGLEVELS = {'debug': DEBUG, 'info': INFO, 'warning': WARNING, 'error': ERROR}
 INVLOGLEVELS = {value : key for key, value in LOGLEVELS.iteritems()}
+
+class ConductLogger(Logger):
+    def getChild(self, suffix, ownDir=False):
+        child = Logger.getChild(self, suffix)
+
+        if ownDir:
+            for handler in self._collectHandlers():
+                if isinstance(handler, LogfileHandler):
+                    handler = handler.getChild(suffix)
+                child.addHandler(handler)
+
+            child.propagate = False
+
+        return child
+
+    def _collectHandlers(self):
+        result = []
+
+        log = self
+        while log is not None:
+            result += log.handlers
+            log = log.parent
+
+        return result
 
 
 class ConsoleFormatter(Formatter):
@@ -187,12 +211,12 @@ class LogfileHandler(StreamHandler):
     """
 
     def __init__(self, directory, filenameprefix, dayfmt=DATESTAMP_FMT):
-        directory = path.join(directory, filenameprefix)
-        if not path.isdir(directory):
-            os.makedirs(directory)
-        self._currentsymlink = path.join(directory, 'current')
+        self._directory = path.join(directory, filenameprefix)
+        if not path.isdir(self._directory):
+            os.makedirs(self._directory)
+        self._currentsymlink = path.join(self._directory, 'current')
         self._filenameprefix = filenameprefix
-        self._pathnameprefix = path.join(directory, filenameprefix)
+        self._pathnameprefix = path.join(self._directory, filenameprefix)
         self._dayfmt = dayfmt
         # today's logfile name
         basefn = self._pathnameprefix + '-' + time.strftime(dayfmt) + '.log'
@@ -206,18 +230,9 @@ class LogfileHandler(StreamHandler):
         self.setFormatter(LogfileFormatter(LOGFMT, DATEFMT))
         self.disabled = False
 
-    def _open(self):
-        # update 'current' symlink upon open
-        try:
-            os.remove(self._currentsymlink)
-        except OSError:
-            # if the symlink does not (yet) exist, OSError is raised.
-            # should happen at most once per installation....
-            pass
-        if hasattr(os, 'symlink'):
-            os.symlink(path.basename(self.baseFilename), self._currentsymlink)
-        # finally open the new logfile....
-        return open(self.baseFilename, self.mode)
+    def getChild(self, name):
+        return LogfileHandler(self._directory, name)
+
 
     def filter(self, record):
         return not self.disabled
@@ -259,6 +274,19 @@ class LogfileHandler(StreamHandler):
             time.strftime(self._dayfmt) + '.log'
         self.stream = self._open()
         self.rollover_at += SECONDS_PER_DAY
+
+    def _open(self):
+        # update 'current' symlink upon open
+        try:
+            os.remove(self._currentsymlink)
+        except OSError:
+            # if the symlink does not (yet) exist, OSError is raised.
+            # should happen at most once per installation....
+            pass
+        if hasattr(os, 'symlink'):
+            os.symlink(path.basename(self.baseFilename), self._currentsymlink)
+        # finally open the new logfile....
+        return open(self.baseFilename, self.mode)
 
 
 class ColoredConsoleHandler(StreamHandler):

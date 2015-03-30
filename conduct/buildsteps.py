@@ -141,6 +141,7 @@ class BuildStep(object):
     def __init__(self, name, paramValues, chain=None):
         self.name = name
         self.chain = chain # Maintain a reference to the chain (for refs)
+        self.wasRun = False
 
         self._params = {}
 
@@ -159,17 +160,43 @@ class BuildStep(object):
         try:
             # execute actual build actions
             self.run()
+            self.wasRun = True
         except Exception as exc:
             resultStr = 'FAILED'
             self.log.exception(exc)
 
-            return False
+            raise
         finally:
             self.log.info('')
             self.log.info('%s' % resultStr)
             self.log.info('=' * 80)
 
-        return True
+    def cleanupBuild(self):
+        if not self.wasRun:
+            return
+
+        self.log.info('=' * 80)
+        self.log.info('Cleanup build step: %s' % self.name)
+        self.log.info(self.description)
+        self.log.info('-' * 80)
+
+        resultStr = 'SUCCESS'
+        try:
+            self.cleanup()
+            self.wasRun = False
+        except Exception as exc:
+            resultStr = 'FAILED'
+            self.log.exception(exc)
+
+            raise
+        finally:
+            self.log.info('')
+            self.log.info('%s' % resultStr)
+            self.log.info('=' * 80)
+
+
+    def cleanup(self):
+        pass
 
 
     def run(self):
@@ -183,14 +210,15 @@ class BuildStep(object):
         return INVLOGLEVELS[level]
 
     def _initLogger(self):
-        self.log = conduct.log.getChild(self.name)
+        if self.chain is not None:
+            self.log = self.chain.log.getChild(self.name)
+        else:
+            self.log = conduct.log.getChild(self.name)
         self.log.setLevel(LOGLEVELS[self.loglevel])
 
     def _applyParams(self, paramValues):
         for name, value in paramValues.iteritems():
             setattr(self, name, value)
-
-
 
 
 class SystemCall(BuildStep):
@@ -224,6 +252,8 @@ class SystemCall(BuildStep):
                                             log=self.log)
         finally:
             os.chdir(cwd)
+
+
 
 
 class Config(BuildStep):
@@ -318,6 +348,10 @@ class TmpDir(BuildStep):
 
         os.makedirs(dest)
         self.tmpdir = dest
+
+    def cleanup(self):
+        shutil.rmtree(self.tmpdir)
+
 
 
 class RmPath(BuildStep):
