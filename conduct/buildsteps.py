@@ -150,6 +150,11 @@ class BuildStep(object):
 
 
     def build(self):
+        '''
+        Build the build step.
+        This method is a wrapper around run() that does some logging and
+        exception handling.
+        '''
         # log some bs stuff
         self.log.info('=' * 80)
         self.log.info('Start build step: %s' % self.name)
@@ -172,6 +177,11 @@ class BuildStep(object):
             self.log.info('=' * 80)
 
     def cleanupBuild(self):
+        '''
+        Cleanup all the build step's leftovers.
+        his method is a wrapper around cleanup() that does some logging and
+        exception handling.
+        '''
         if not self.wasRun:
             return
 
@@ -196,10 +206,19 @@ class BuildStep(object):
 
 
     def cleanup(self):
+        '''
+        This function shall be overwritten by the specific build steps
+        and should do everything that's necessary for cleaning up after
+        the build.
+        '''
         pass
 
 
     def run(self):
+        '''
+        This function shall be overwritten by the specific build steps
+        and should do everything that's necessary build this step.
+        '''
         pass
 
     def doWriteLoglevel(self, value):

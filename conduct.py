@@ -33,12 +33,9 @@ from conduct.chain import Chain
 from conduct.util import loadChainDefinition, loadChainConfig, chainPathToName
 
 def processGlobalArgs(parser, argv):
-    parser.add_argument('-v',
-                        '--verbose',
-                        action='store_true',
-                        help='Verbose logging',
-                        default=False)
-
+    '''
+    Parse 'global' arguments that does not belong to any chain.
+    '''
     parser.add_argument('-g',
                         '--global-config',
                         type=str,
@@ -73,6 +70,9 @@ def processGlobalArgs(parser, argv):
     return globalArgs
 
 def addChainArgs(parser, chainName):
+    '''
+    Add parameters of given chain (by name) as arguments to the argparse parser.
+    '''
     chainDef = loadChainDefinition(chainName)
 
     for paramName, paramDef in chainDef['parameters'].iteritems():
@@ -87,6 +87,9 @@ def addChainArgs(parser, chainName):
 
 
 def parseArgv(argv):
+    '''
+    Parse command line arguments.
+    '''
     parser = argparse.ArgumentParser(description='conduct - CONvenient Construction Tool',
                                      conflict_handler='resolve',
                                      add_help=False)
@@ -106,6 +109,9 @@ def parseArgv(argv):
     return parser.parse_args(argv)
 
 def initLogging(daemonize=False):
+    '''
+    Initialize custom logging and configure it by global config.
+    '''
     globalcfg = conduct.cfg['conduct']
 
     logging.Logger.manager.setLoggerClass(loggers.ConductLogger)
