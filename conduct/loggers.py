@@ -45,6 +45,7 @@ INVLOGLEVELS = {value : key for key, value in LOGLEVELS.iteritems()}
 class ConductLogger(Logger):
     def getChild(self, suffix, ownDir=False):
         child = Logger.getChild(self, suffix)
+        child.setLevel(self.getEffectiveLevel())
 
         if ownDir:
             for handler in self._collectHandlers():

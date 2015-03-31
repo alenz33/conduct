@@ -114,9 +114,7 @@ def initLogging(daemonize=False):
     '''
     globalcfg = conduct.cfg['conduct']
 
-    logging.Logger.manager.setLoggerClass(loggers.ConductLogger)
-    # getChild necessary to get the correct logger class
-    conduct.log = logging.getLogger().getChild('conduct')
+    conduct.log = loggers.ConductLogger('conduct')
     loglevel = loggers.LOGLEVELS[globalcfg['loglevel']]
     conduct.log.setLevel(loglevel)
 
