@@ -554,6 +554,22 @@ class MakeDirs(BuildStep):
                 shutil.rmtree(entry)
 
 
+class Debootstrap(BuildStep):
+    '''
+    This build step bootstraps a basic debian system to the given directory.
+    '''
+
+    parameters = {
+        'distribution' : Parameter(type=listof(str),
+                                 description='Desired distribution'),
+        'arch' : Parameter(type=listof(str),
+                                 description='Desired architecture'),
+    }
+
+    def run(self):
+        raise NotImplementedError('TODO')
+
+
 
 
 
