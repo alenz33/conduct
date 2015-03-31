@@ -370,7 +370,7 @@ class TmpDir(BuildStep):
 
         self.log.info('Create temporary dir: %s' % dest)
 
-        os.makedirs(dest)
+        ensureDirectory(dest)
         self.tmpdir = dest
 
     def cleanup(self):
