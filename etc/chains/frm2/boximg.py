@@ -53,4 +53,8 @@ steps.partition   = Step('conduct.Partitioning',
                         dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img',
                         partitions=[3,5])
 
+steps.devmap   = Step('conduct.DevMapper',
+                        description='Map new image partitions to device files',
+                        dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img')
+
 

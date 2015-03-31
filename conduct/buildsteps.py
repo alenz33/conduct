@@ -34,7 +34,7 @@ from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof, none_or, dictof, listof, tupleof
 
 __all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir', 'RmPath',
-           'Partitioning']
+           'Partitioning', 'DevMapper']
 
 
 class BuildStepMeta(type):
@@ -418,8 +418,7 @@ class Partitioning(BuildStep):
         shCmd = '(%s)' % ''.join([ 'echo %s;' % entry for entry in cmds])
         shCmd += '| fdisk %s 2>&1' % self.dev
 
-        output = systemCall(shCmd, captureOutput=True, log=self.log)
-        self.log.debug(output)
+        systemCall(shCmd, captureOutput=True, log=self.log)
 
     def _createPartitionCmds(self, index, size):
         cmds = [
@@ -437,6 +436,46 @@ class Partitioning(BuildStep):
         cmds.append('+%dM' % size) # partition size
 
         return cmds
+
+class DevMapper(BuildStep):
+    '''
+    This build step uses kpartx (devmapper) to map the partitions of the given
+    device to own device files.
+    '''
+    parameters = {
+        'dev' : Parameter(type=str,
+                                 description='Path to the device file'),
+    }
+
+    outparameters = {
+        'mapped' : Parameter(type=list,
+                                description='Created device files',)
+    }
+
+    def run(self):
+        # create device files
+        systemCall('kpartx -v -a -s %s' % self.dev,
+                   captureOutput=True,
+                   log=self.log)
+
+        # request a proper formated list of devs
+        out = systemCall('kpartx -v -l -s %s' % self.dev,
+                   captureOutput=True,
+                   log=self.log)
+
+        # store created device file paths
+        self.mapped = []
+        for line in out.splitlines():
+            devFile = line.rpartition(':')[0].strip()
+            self.mapped.append(path.join('/dev/mapper', devFile))
+
+    def cleanup(self):
+        systemCall('kpartx -v -d -s %s' % self.dev,
+                   captureOutput=True,
+                   log=self.log)
+
+
+
 
 
 
