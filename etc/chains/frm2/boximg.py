@@ -67,3 +67,13 @@ steps.mount   = Step('conduct.Mount',
                         dev='{steps.devmap.mapped[0]}',
                         mountpoint='{steps.tmpdir.tmpdir}/mount')
 
+steps.mkchrootdirs   = Step('conduct.MakeDirs',
+                        description='Create some necessary dirs for the chroot environment',
+                        dirs=[
+                            '{steps.mount.mountpoint}/boot/grub',
+                            '{steps.mount.mountpoint}/proc',
+                            '{steps.mount.mountpoint}/dev',
+                            '{steps.mount.mountpoint}/sys',
+                            '{steps.mount.mountpoint}/root',
+                            ])
+

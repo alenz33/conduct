@@ -34,7 +34,7 @@ from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof, none_or, dictof, listof, tupleof
 
 __all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir', 'RmPath',
-           'Partitioning', 'DevMapper', 'CreateFileSystem', 'Mount']
+           'Partitioning', 'DevMapper', 'CreateFileSystem', 'Mount', 'MakeDirs']
 
 
 class BuildStepMeta(type):
@@ -525,6 +525,33 @@ class Mount(BuildStep):
         systemCall('umount %s' % (self.mountpoint),
                    captureOutput=True,
                    log=self.log)
+
+
+class MakeDirs(BuildStep):
+    '''
+    This build step create the desired directories.
+    '''
+
+    parameters = {
+        'dirs' : Parameter(type=listof(str),
+                                 description='List of directories'),
+        'removeoncleanup' : Parameter(type=bool,
+                                 description='Remove the directories on clenup',
+                                 default=True),
+    }
+
+    def run(self):
+        for entry in self.dirs:
+            # TODO: Referencer support for nested types
+            entry = Referencer(entry).evaluate(self.chain)
+            self.log.debug('Create directory: %s ...' % entry)
+            ensureDirectory(entry)
+
+    def cleanup(self):
+        if self.removeoncleanup:
+            for entry in self.dirs:
+                entry = Referencer(entry).evaluate(self.chain)
+                shutil.rmtree(entry)
 
 
 
