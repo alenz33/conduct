@@ -82,13 +82,29 @@ class Dataholder(object):
 
 ## Util funcs
 
+def logMultipleLines(strOrList, logFunc=None):
+    if logFunc is None:
+        logFunc = conduct.log.info
+
+    if isinstance(strOrList, str):
+        strOrList = strOrList.splitlines()
+
+    for line in strOrList:
+        logFunc(line)
+
+
+
 def systemCall(cmd, sh=True, captureOutput=False, log=None):
-    if log is not None:
-        log.debug('System call [sh:%s][captureOutput:%s]: %s' \
-                  % (sh, captureOutput, cmd))
+    if log is None:
+        log = conduct.log
+
+    log.debug('System call [sh:%s][captureOutput:%s]: %s' \
+              % (sh, captureOutput, cmd))
 
     if captureOutput:
-        return subprocess.check_output(cmd, shell=sh)
+        out = subprocess.check_output(cmd, shell=sh)
+        logMultipleLines(out, log.debug)
+        return out
     subprocess.check_call(cmd, shell=sh)
 
 
