@@ -133,6 +133,10 @@ class BuildStep(object):
         'loglevel' : Parameter(type=oneof(LOGLEVELS.keys()),
                                description='Log level',
                                default='info'),
+        'retries' : Parameter(type=int,
+                                  description='Number of retries to execute the '
+                                    'build step',
+                                  default=0),
     }
 
     outparameters = {
@@ -161,20 +165,29 @@ class BuildStep(object):
         self.log.info(self.description)
         self.log.info('-' * 80)
 
-        resultStr = 'SUCCESS'
-        try:
-            # execute actual build actions
-            self.run()
-            self.wasRun = True
-        except Exception as exc:
-            resultStr = 'FAILED'
-            self.log.exception(exc)
+        success = False
 
-            raise
-        finally:
-            self.log.info('')
-            self.log.info('%s' % resultStr)
-            self.log.info('=' * 80)
+        for i in range(0, self.retries +1):
+            try:
+                # execute actual build actions
+                self.run()
+                self.wasRun = True
+                success = True
+                break
+            except Exception as exc:
+                self.log.exception(exc)
+
+                # handle retries
+                if self.retries > i:
+                    self.log.warn('Failed; Retry %s/%s' % (i+1, self.retries))
+
+        # log some bs stuff
+        self.log.info('')
+        self.log.info('%s' % 'SUCCESS' if success else 'FAILED')
+        self.log.info('=' * 80)
+
+        if not success:
+            raise RuntimeError('Build step failed')
 
     def cleanupBuild(self):
         '''

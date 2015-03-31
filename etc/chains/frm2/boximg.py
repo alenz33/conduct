@@ -39,7 +39,8 @@ parameters = {
 # Build steps
 steps.imgdef   = Step('conduct.Config',
                         description='Read image definition file',
-                        path='{chain.imgcfgdir}/{chain.imgname}.py')
+                        path='{chain.imgcfgdir}/{chain.imgname}.py',
+                        retries=1)
 
 steps.tmpdir   = Step('conduct.TmpDir',
                         description='Generate build dir',)
