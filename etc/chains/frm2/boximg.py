@@ -57,4 +57,14 @@ steps.devmap   = Step('conduct.DevMapper',
                         description='Map new image partitions to device files',
                         dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img')
 
+steps.mkfs1   = Step('conduct.CreateFileSystem',
+                        description='Create ext2 file systems for first image partition',
+                        dev='{steps.devmap.mapped[0]}',
+                        fstype='ext2')
+
+steps.mkfs2   = Step('conduct.CreateFileSystem',
+                        description='Create ext2 file systems for second image partition',
+                        dev='{steps.devmap.mapped[1]}',
+                        fstype='ext2')
+
 

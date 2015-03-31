@@ -34,7 +34,7 @@ from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof, none_or, dictof, listof, tupleof
 
 __all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir', 'RmPath',
-           'Partitioning', 'DevMapper']
+           'Partitioning', 'DevMapper', 'CreateFileSystem']
 
 
 class BuildStepMeta(type):
@@ -236,8 +236,13 @@ class BuildStep(object):
         self.log.setLevel(LOGLEVELS[self.loglevel])
 
     def _applyParams(self, paramValues):
-        for name, value in paramValues.iteritems():
-            setattr(self, name, value)
+
+        for name, paramDef in self.parameters.iteritems():
+            if name in paramValues:
+                setattr(self, name, paramValues[name])
+            elif paramDef.default is None:
+                raise RuntimeError('%s: Mandatory parameter %s is missing'
+                                   % (self.name, name))
 
 
 class SystemCall(BuildStep):
@@ -471,6 +476,31 @@ class DevMapper(BuildStep):
 
     def cleanup(self):
         systemCall('kpartx -v -d -s %s' % self.dev,
+                   captureOutput=True,
+                   log=self.log)
+
+class CreateFileSystem(BuildStep):
+    '''
+    This build step creates the desired file system on the given device.
+    Used tool: mkfs
+    '''
+
+    parameters = {
+        'dev' : Parameter(type=str,
+                                 description='Path to the device file'),
+        'fstype' : Parameter(type=oneof('bfs',
+                                        'cramfs',
+                                        'ext2',
+                                        'ext3',
+                                        'ext4',
+                                        'fat',
+                                        'ntfs',
+                                        'vfat'),
+                                 description='Desired file system'),
+    }
+
+    def run(self):
+        systemCall('mkfs -t %s %s' % (self.fstype, self.dev),
                    captureOutput=True,
                    log=self.log)
 
