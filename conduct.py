@@ -21,16 +21,21 @@
 #
 # *****************************************************************************
 
+'''
+conduct's main script.
+Handles all command line arguments, creates and executes the given chain.
+'''
+
 import sys
 import os
-import logging
 import argparse
 
 import conduct
 
-from conduct import loggers, config
+from conduct import loggers
 from conduct.chain import Chain
-from conduct.util import loadChainDefinition, loadChainConfig, chainPathToName
+from conduct.util import loadChainDefinition, loadChainConfig, \
+    chainPathToName, loadConductConf
 
 def processGlobalArgs(parser, argv):
     '''
@@ -58,7 +63,7 @@ def processGlobalArgs(parser, argv):
 
     # init config
     # load and store global config
-    conduct.cfg = config.loadConductConf(globalArgs.global_config)
+    conduct.cfg = loadConductConf(globalArgs.global_config)
 
     # handle help stuff
     if globalArgs.help and not specArgs:

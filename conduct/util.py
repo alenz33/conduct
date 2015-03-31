@@ -25,6 +25,7 @@ import logging
 import subprocess
 
 from collections import OrderedDict
+from ConfigParser import SafeConfigParser
 from os import path
 
 import conduct
@@ -81,6 +82,16 @@ class Dataholder(object):
 
 
 ## Util funcs
+
+def loadConductConf(path='/etc/conduct.conf'):
+    parser = SafeConfigParser()
+    parser.readfp(open(path))
+
+    cfg = {'conduct' : {
+        option : value for option, value in parser.items('conduct')
+    }}
+
+    return cfg
 
 def logMultipleLines(strOrList, logFunc=None):
     if logFunc is None:
