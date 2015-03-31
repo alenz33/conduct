@@ -62,9 +62,8 @@ steps.mkfs1   = Step('conduct.CreateFileSystem',
                         dev='{steps.devmap.mapped[0]}',
                         fstype='ext2')
 
-steps.mkfs2   = Step('conduct.CreateFileSystem',
-                        description='Create ext2 file systems for second image partition',
-                        dev='{steps.devmap.mapped[1]}',
-                        fstype='ext2')
-
+steps.mount   = Step('conduct.Mount',
+                        description='Mount first image partition',
+                        dev='{steps.devmap.mapped[0]}',
+                        mountpoint='{steps.tmpdir.tmpdir}/mount')
 

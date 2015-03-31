@@ -29,12 +29,12 @@ import shutil
 from os import path
 
 import conduct
-from conduct.util import systemCall, Referencer
+from conduct.util import systemCall, Referencer, ensureDirectory
 from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof, none_or, dictof, listof, tupleof
 
 __all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir', 'RmPath',
-           'Partitioning', 'DevMapper', 'CreateFileSystem']
+           'Partitioning', 'DevMapper', 'CreateFileSystem', 'Mount']
 
 
 class BuildStepMeta(type):
@@ -501,6 +501,28 @@ class CreateFileSystem(BuildStep):
 
     def run(self):
         systemCall('mkfs -t %s %s' % (self.fstype, self.dev),
+                   captureOutput=True,
+                   log=self.log)
+
+class Mount(BuildStep):
+    '''
+    This build step mounts given device to given mount point.
+    '''
+    parameters = {
+        'dev' : Parameter(type=str,
+                                 description='Path to the device file'),
+        'mountpoint' : Parameter(type=str,
+                                 description='Path to the mount point'),
+    }
+
+    def run(self):
+        ensureDirectory(self.mountpoint)
+        systemCall('mount %s %s' % (self.dev, self.mountpoint),
+                   captureOutput=True,
+                   log=self.log)
+
+    def cleanup(self):
+        systemCall('umount %s' % (self.mountpoint),
                    captureOutput=True,
                    log=self.log)
 

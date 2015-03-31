@@ -186,3 +186,8 @@ def loadChainConfig(chainName):
         return loadPyFile(cfgFile)
     return {}
 
+def ensureDirectory(dirpath):
+    if not path.isdir(dirpath):
+        os.makedirs(dirpath)
+
+
