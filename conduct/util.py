@@ -136,7 +136,16 @@ def logMultipleLines(strOrList, logFunc=None):
     for line in strOrList:
         logFunc(line)
 
+def mount(dev, mountpoint, flags='', log=None):
+        ensureDirectory(mountpoint)
+        systemCall('mount %s %s %s' % (flags, dev, mountpoint),
+                   captureOutput=True,
+                   log=log)
 
+def umount(mountpoint, log=None):
+    systemCall('umount %s' % mountpoint,
+               captureOutput=True,
+               log=log)
 
 def systemCall(cmd, sh=True, captureOutput=False, log=None):
     if log is None:
@@ -150,6 +159,38 @@ def systemCall(cmd, sh=True, captureOutput=False, log=None):
         logMultipleLines(out, log.debug)
         return out
     subprocess.check_call(cmd, shell=sh)
+
+def chrootedSystemCall(chrootDir, cmd, sh=True, captureOutput=False,
+                       mountPseudoFs=True, log=None):
+    if log is None:
+        log = conduct.log
+
+    # determine mount points for pseudo fs
+    proc = path.join(chrootDir, 'proc')
+    sys = path.join(chrootDir, 'sys')
+    dev = path.join(chrootDir, 'dev')
+    devpts = path.join(chrootDir, 'dev', 'pts')
+
+    # mount pseudo fs
+    if mountPseudoFs:
+        mount('proc', proc, '-t proc')
+        mount('/sys', sys, '--rbind')
+        mount('/dev', dev, '--rbind')
+
+    try:
+        # exec chrooted cmd
+        cmd = 'chroot %s %s' % (chrootDir, cmd)
+        return systemCall(cmd, sh, captureOutput, log)
+    finally:
+        # umount if pseudo fs was mounted
+        if mountPseudoFs:
+            # handle devpts
+            if path.exists(devpts):
+                umount(devpts)
+            umount(dev)
+            umount(sys)
+            umount(proc)
+
 
 
 def dictToDataholder(d):
