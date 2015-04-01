@@ -153,6 +153,7 @@ def umount(mountpoint, log=None):
                log=log)
 
 def systemCall(cmd, sh=True, captureOutput=False, log=None):
+    # TODO: open pipe and log all the output on the fly
     if log is None:
         log = conduct.log
 
