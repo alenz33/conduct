@@ -35,7 +35,7 @@ import conduct
 from conduct import loggers
 from conduct.chain import Chain
 from conduct.util import loadChainDefinition, loadChainConfig, \
-    chainPathToName, loadConductConf
+    chainPathToName, loadConductConf, analyzeSystem
 
 def processGlobalArgs(parser, argv):
     '''
@@ -143,6 +143,9 @@ def main(argv=None):
 
     # configure logging
     initLogging()
+
+    # collect some system information
+    conduct.cfg['system'] = analyzeSystem()
 
     chainDef = loadChainDefinition(args.chain)
 

@@ -23,6 +23,7 @@
 import os
 import logging
 import subprocess
+import platform
 
 from collections import OrderedDict
 from ConfigParser import SafeConfigParser
@@ -82,6 +83,25 @@ class Dataholder(object):
 
 
 ## Util funcs
+
+def analyzeSystem():
+    conduct.log.info('Analyze current system ...')
+
+    info = platform.uname()
+    infoKeys = ('os',
+                'hostname',
+                'release',
+                'version',
+                'arch',
+                'processor')
+
+    info = dict(zip(infoKeys, info))
+
+    for key in infoKeys:
+        conduct.log.debug('{:<10}: {}'.format(key, info[key]))
+
+    return info
+
 
 def loadConductConf(cfgPath=None):
     if cfgPath is None:
