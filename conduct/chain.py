@@ -61,7 +61,7 @@ class Chain(object):
         self.log = conduct.log.getChild(self.name, True)
 
     def _applyParamValues(self, values):
-        for name, definition in self.parameters.iteritems():
+        for name, definition in self.parameters.items():
             if name in values:
                 self.params[name] = values[name]
             elif definition.default is not None:
@@ -76,7 +76,7 @@ class Chain(object):
         self._createSteps()
 
     def _createSteps(self):
-        for name, definition in self._chainDef['steps'].iteritems():
+        for name, definition in self._chainDef['steps'].items():
             # name should be step:name or chain:name
             entryType, entryName = definition[0].split(':')
 
@@ -93,7 +93,7 @@ class Chain(object):
                 self.steps[name] = Chain(entryName)
 
     def _createReferencers(self, paramValues):
-        for paramName, paramValue in paramValues.iteritems():
+        for paramName, paramValue in paramValues.items():
             if isinstance(paramValue, str) \
                 and re.match('.*?(\{(.*?)\})+.*?', paramValue):
                     paramValues[paramName] = Referencer(paramValue)

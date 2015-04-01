@@ -129,7 +129,7 @@ class dictof(object):
         if not isinstance(val, dict):
             raise ValueError('value needs to be a dict')
         ret = {}
-        for k, v in val.iteritems():
+        for k, v in val.items():
             ret[self.keyconv(k)] = self.valconv(v)
         return ret
 

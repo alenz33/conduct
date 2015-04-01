@@ -79,7 +79,7 @@ def addChainArgs(parser, chainName):
     '''
     chainDef = loadChainDefinition(chainName)
 
-    for paramName, paramDef in chainDef['parameters'].iteritems():
+    for paramName, paramDef in chainDef['parameters'].items():
         flag = '--%s' % paramName
         parser.add_argument(
             flag,

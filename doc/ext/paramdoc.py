@@ -94,7 +94,7 @@ class ParamDocumenter(ClassDocumenter):
 
         if isinstance(self.object.parameters, property):
             return ClassDocumenter.document_members(self, all_members)
-        for param, info in sorted(self.object.parameters.iteritems()):
+        for param, info in sorted(self.object.parameters.items()):
             if info.classname is not None and info.classname != myclsname:
                 baseparaminfo.append((param, info))
                 continue
