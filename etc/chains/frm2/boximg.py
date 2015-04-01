@@ -34,6 +34,8 @@ parameters = {
                             description='Image name'),
     'imgcfgdir' : Parameter(type=str,
                             description='Image config directory'),
+    'distribution' : Parameter(type=str,
+                            description='Distribution to boostrap onto the image'),
 }
 
 # Build steps
@@ -72,9 +74,12 @@ steps.mkchrootdirs   = Step('conduct.MakeDirs',
                         description='Create some necessary dirs for the chroot environment',
                         dirs=[
                             '{steps.mount.mountpoint}/boot/grub',
-                            '{steps.mount.mountpoint}/proc',
-                            '{steps.mount.mountpoint}/dev',
-                            '{steps.mount.mountpoint}/sys',
-                            '{steps.mount.mountpoint}/root',
                             ])
+
+steps.debootstrap   = Step('conduct.Debootstrap',
+                        description='Boostrap basic system',
+                        distribution='{chain.distribution}',
+                        arch='i386',
+                        destdir='{steps.tmpdir.tmpdir}/mount')
+
 

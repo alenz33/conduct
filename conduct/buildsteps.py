@@ -29,12 +29,14 @@ import shutil
 from os import path
 
 import conduct
-from conduct.util import systemCall, Referencer, ensureDirectory
+from conduct.util import systemCall, Referencer, ensureDirectory, mount, \
+    umount, chrootedSystemCall
 from conduct.loggers import LOGLEVELS, INVLOGLEVELS
 from conduct.param import Parameter, oneof, none_or, dictof, listof, tupleof
 
 __all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir', 'RmPath',
-           'Partitioning', 'DevMapper', 'CreateFileSystem', 'Mount', 'MakeDirs']
+           'Partitioning', 'DevMapper', 'CreateFileSystem', 'Mount',
+           'MakeDirs', 'Debootstrap']
 
 
 class BuildStepMeta(type):
@@ -78,7 +80,7 @@ class BuildStepMeta(type):
 
     @classmethod
     def _createProperties(mcls, paramDict, attrs):
-        for name, definition in paramDict.iteritems():
+        for name, definition in paramDict.items():
             mcls._createProperty(name, definition, attrs)
 
 
@@ -250,7 +252,7 @@ class BuildStep(object):
 
     def _applyParams(self, paramValues):
 
-        for name, paramDef in self.parameters.iteritems():
+        for name, paramDef in self.parameters.items():
             if name in paramValues:
                 setattr(self, name, paramValues[name])
             elif paramDef.default is None:
@@ -517,6 +519,7 @@ class CreateFileSystem(BuildStep):
                    captureOutput=True,
                    log=self.log)
 
+
 class Mount(BuildStep):
     '''
     This build step mounts given device to given mount point.
@@ -529,15 +532,10 @@ class Mount(BuildStep):
     }
 
     def run(self):
-        ensureDirectory(self.mountpoint)
-        systemCall('mount %s %s' % (self.dev, self.mountpoint),
-                   captureOutput=True,
-                   log=self.log)
+        mount(self.dev, self.mountpoint, log=self.log)
 
     def cleanup(self):
-        systemCall('umount %s' % (self.mountpoint),
-                   captureOutput=True,
-                   log=self.log)
+        umount(self.mountpoint, log=self.log)
 
 
 class MakeDirs(BuildStep):
@@ -573,14 +571,47 @@ class Debootstrap(BuildStep):
     '''
 
     parameters = {
-        'distribution' : Parameter(type=listof(str),
+        'distribution' : Parameter(type=str,
                                  description='Desired distribution'),
-        'arch' : Parameter(type=listof(str),
+        # TODO: map archs? => system analyzer?
+        'arch' : Parameter(type=oneof('x86_64', 'i386', 'armel', 'armhf'),
                                  description='Desired architecture'),
+        'destdir' : Parameter(type=str,
+                                 description='Destination directory'),
     }
 
     def run(self):
-        raise NotImplementedError('TODO')
+        cmd = 'debootstrap --verbose --arch=%s ' % self.arch
+
+        if self._isForeignArch():
+            # separate first and second stage
+            cmd += '--foreign '
+
+        cmd += '%s %s' % (self.distribution, self.destdir)
+
+        self.log.info('Bootstrapping ...')
+        systemCall(cmd, captureOutput=True, log=self.log)
+
+        if self._isForeignArch():
+            self._strapSecondStage()
+
+    def _isForeignArch(self):
+        return self.arch != conduct.cfg['system']['arch']
+
+    def _strapSecondStage(self):
+        self.log.info('Boostrap second stage ...')
+        qemuStatic = '/usr/bin/qemu-%s-static' % self.arch
+        chrootQemuStaticPlace = path.join(self.destdir, 'usr', 'bin')
+
+        shutil.copy(qemuStatic, chrootQemuStaticPlace)
+        chrootedSystemCall(self.destdir,
+                           'debootstrap/debootstrap --second-stage',
+                           mountPseudoFs=False,
+                           captureOutput=True,
+                           log=self.log)
+
+
+
 
 
 
