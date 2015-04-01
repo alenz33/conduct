@@ -83,15 +83,28 @@ class Dataholder(object):
 
 ## Util funcs
 
-def loadConductConf(path='/etc/conduct.conf'):
+def loadConductConf(cfgPath=None):
+    if cfgPath is None:
+        cfgPath = getDefaultConfigPath()
+
     parser = SafeConfigParser()
-    parser.readfp(open(path))
+    parser.readfp(open(cfgPath))
 
     cfg = {'conduct' : {
         option : value for option, value in parser.items('conduct')
     }}
 
     return cfg
+
+def getDefaultConfigPath():
+    inplacePath = path.join(path.dirname(__file__),
+                                '..',
+                                'etc',
+                                'conduct.conf')
+    if path.isfile(inplacePath):
+        return inplacePath
+    return '/etc/entangle.conf'
+
 
 def logMultipleLines(strOrList, logFunc=None):
     if logFunc is None:

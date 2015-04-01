@@ -44,8 +44,7 @@ def processGlobalArgs(parser, argv):
     parser.add_argument('-g',
                         '--global-config',
                         type=str,
-                        help='Global config file (conduct.conf)',
-                        default='/etc/conduct.conf')
+                        help='Global config file (conduct.conf)',)
 
     parser.add_argument('-c',
                         '--chain',
