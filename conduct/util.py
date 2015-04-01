@@ -87,6 +87,7 @@ class Dataholder(object):
 def analyzeSystem():
     conduct.log.info('Analyze current system ...')
 
+    # basic information
     info = platform.uname()
     infoKeys = ('os',
                 'hostname',
@@ -95,10 +96,14 @@ def analyzeSystem():
                 'arch',
                 'processor')
 
-    info = dict(zip(infoKeys, info))
+    info = OrderedDict(zip(infoKeys, info))
 
-    for key in infoKeys:
-        conduct.log.debug('{:<10}: {}'.format(key, info[key]))
+    # detailed arch info
+    info.update(zip(('bits', 'binformat'), platform.architecture()))
+
+
+    for key, value in info.items():
+        conduct.log.debug('{:<10}: {}'.format(key, value))
 
     return info
 
@@ -199,7 +204,7 @@ def dictToDataholder(d):
 
     result = Dataholder()
 
-    for key, value in d.iteritems():
+    for key, value in d.items():
         result.key = value
 
     return result
