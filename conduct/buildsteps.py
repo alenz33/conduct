@@ -267,9 +267,6 @@ class SystemCall(BuildStep):
     parameters = {
         'command' : Parameter(type=str,
                               description='command to execute'),
-        'captureoutput' : Parameter(type=bool,
-                                    description='Capture command output',
-                                    default=True),
         'workingdir' : Parameter(type=str,
                                  description='Working directory for command execution',
                                  default='.'),
@@ -286,9 +283,7 @@ class SystemCall(BuildStep):
 
         try:
             os.chdir(self.workingdir)
-            self.commandoutput = systemCall(self.command,
-                                            captureOutput=self.captureoutput,
-                                            log=self.log)
+            self.commandoutput = systemCall(self.command, log=self.log)
         finally:
             os.chdir(cwd)
 
@@ -438,7 +433,7 @@ class Partitioning(BuildStep):
         shCmd = '(%s)' % ''.join([ 'echo %s;' % entry for entry in cmds])
         shCmd += '| fdisk %s 2>&1' % self.dev
 
-        systemCall(shCmd, captureOutput=True, log=self.log)
+        systemCall(shCmd, log=self.log)
 
     def _createPartitionCmds(self, index, size):
         cmds = [
@@ -474,14 +469,10 @@ class DevMapper(BuildStep):
 
     def run(self):
         # create device files
-        systemCall('kpartx -v -a -s %s' % self.dev,
-                   captureOutput=True,
-                   log=self.log)
+        systemCall('kpartx -v -a -s %s' % self.dev, log=self.log)
 
         # request a proper formated list of devs
-        out = systemCall('kpartx -v -l -s %s' % self.dev,
-                   captureOutput=True,
-                   log=self.log)
+        out = systemCall('kpartx -v -l -s %s' % self.dev, log=self.log)
 
         # store created device file paths
         self.mapped = []
@@ -491,7 +482,6 @@ class DevMapper(BuildStep):
 
     def cleanup(self):
         systemCall('kpartx -v -d -s %s' % self.dev,
-                   captureOutput=True,
                    log=self.log)
 
 class CreateFileSystem(BuildStep):
@@ -515,9 +505,7 @@ class CreateFileSystem(BuildStep):
     }
 
     def run(self):
-        systemCall('mkfs -t %s %s' % (self.fstype, self.dev),
-                   captureOutput=True,
-                   log=self.log)
+        systemCall('mkfs -t %s %s' % (self.fstype, self.dev), log=self.log)
 
 
 class Mount(BuildStep):
@@ -590,7 +578,7 @@ class Debootstrap(BuildStep):
         cmd += '%s %s' % (self.distribution, self.destdir)
 
         self.log.info('Bootstrapping ...')
-        systemCall(cmd, captureOutput=True, log=self.log)
+        systemCall(cmd, log=self.log)
 
         if self._isForeignArch():
             self._strapSecondStage()
@@ -607,7 +595,6 @@ class Debootstrap(BuildStep):
         chrootedSystemCall(self.destdir,
                            'debootstrap/debootstrap --second-stage',
                            mountPseudoFs=False,
-                           captureOutput=True,
                            log=self.log)
 
 

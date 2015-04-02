@@ -22,12 +22,15 @@
 
 import os
 import logging
-import subprocess
 import platform
+import select
+import time
+
 
 from collections import OrderedDict
 from ConfigParser import SafeConfigParser
 from os import path
+from subprocess import Popen, PIPE, CalledProcessError
 
 import conduct
 from conduct.param import Parameter
@@ -144,30 +147,66 @@ def logMultipleLines(strOrList, logFunc=None):
 def mount(dev, mountpoint, flags='', log=None):
         ensureDirectory(mountpoint)
         systemCall('mount %s %s %s' % (flags, dev, mountpoint),
-                   captureOutput=True,
                    log=log)
 
 def umount(mountpoint, log=None):
     systemCall('umount %s' % mountpoint,
-               captureOutput=True,
                log=log)
 
-def systemCall(cmd, sh=True, captureOutput=False, log=None):
-    # TODO: open pipe and log all the output on the fly
+def systemCall(cmd, sh=True, log=None):
     if log is None:
         log = conduct.log
 
-    log.debug('System call [sh:%s][captureOutput:%s]: %s' \
-              % (sh, captureOutput, cmd))
+    log.debug('System call [sh:%s]: %s' \
+              % (sh, cmd))
 
-    if captureOutput:
-        out = subprocess.check_output(cmd, shell=sh)
-        logMultipleLines(out, log.debug)
-        return out
-    subprocess.check_call(cmd, shell=sh)
+    out = []
+    proc = None
+    poller = None
 
-def chrootedSystemCall(chrootDir, cmd, sh=True, captureOutput=False,
-                       mountPseudoFs=True, log=None):
+    def pollOutput():
+        '''
+        Read, log and store output (if any) from processes pipes.
+        '''
+         # collect fds with new output
+        fds = [entry[0] for entry in poller.poll()]
+
+        if proc.stdout.fileno() in fds:
+            for line in iter(proc.stdout.readline, ''):
+                log.debug(line.strip())
+                out.append(line)
+        if proc.stderr.fileno() in fds:
+            for line in iter(proc.stderr.readline, ''):
+                log.warning(line.strip())
+
+
+    while True:
+        if proc is None:
+            # create and start process
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=sh)
+
+            # create poll select
+            poller = select.poll()
+
+            # register pipes to polling
+            poller.register(proc.stdout, select.POLLIN)
+            poller.register(proc.stderr, select.POLLIN)
+
+        pollOutput()
+
+        if proc.poll() is not None: # proc finished
+            break
+
+    # poll once after the process ended to collect all the missing output
+    pollOutput()
+
+    # check return code
+    if proc.returncode != 0:
+        raise CalledProcessError(proc.returncode, cmd, ''.join(out))
+
+    return ''.join(out)
+
+def chrootedSystemCall(chrootDir, cmd, sh=True, mountPseudoFs=True, log=None):
     if log is None:
         log = conduct.log
 
@@ -186,7 +225,7 @@ def chrootedSystemCall(chrootDir, cmd, sh=True, captureOutput=False,
     try:
         # exec chrooted cmd
         cmd = 'chroot %s %s' % (chrootDir, cmd)
-        return systemCall(cmd, sh, captureOutput, log)
+        return systemCall(cmd, sh, log)
     finally:
         # umount if pseudo fs was mounted
         if mountPseudoFs:
