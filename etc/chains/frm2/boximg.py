@@ -49,12 +49,14 @@ steps.tmpdir   = Step('conduct.TmpDir',
 
 steps.imgfile   = Step('conduct.SystemCall',
                         description='Create empty image file',
-                        command='dcfldd if=/dev/zero of={steps.tmpdir.tmpdir}/{chain.imgname}.img bs=1048576 count={steps.imgdef.config[size]}')
+                        command='dcfldd if=/dev/zero '
+                        'of={steps.tmpdir.tmpdir}/{chain.imgname}.img '
+                        'bs=1048576 count={steps.imgdef.config[size]}')
 
 steps.partition   = Step('conduct.Partitioning',
                         description='Partition image file',
                         dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img',
-                        partitions=[3,5])
+                        partitions=[1020,1020])
 
 steps.devmap   = Step('conduct.DevMapper',
                         description='Map new image partitions to device files',
@@ -81,5 +83,24 @@ steps.debootstrap   = Step('conduct.Debootstrap',
                         distribution='{chain.distribution}',
                         arch='i386',
                         destdir='{steps.tmpdir.tmpdir}/mount')
+
+# replace by cp + sed steps
+steps.aptmain   = Step('conduct.SystemCall',
+                        description='Add main apt repo',
+                        command='echo "deb http://ftp.de.debian.org/debian/ '
+                        '{chain.distribution} main" >> '
+                        '{steps.mount.mountpoint}/etc/apt/sources.list')
+
+# replace by cp + sed steps
+steps.aptbackp   = Step('conduct.SystemCall',
+                        description='Add backport apt repo',
+                        command='echo "deb http://ftp.de.debian.org/debian/ '
+                        '{chain.distribution}-backports main" >> '
+                        '{steps.mount.mountpoint}/etc/apt/sources.list')
+
+steps.aptupdate   = Step('conduct.ChrootedSystemCall',
+                        description='Update package lists',
+                        command='apt-get update',
+                        chrootdir='{steps.mount.mountpoint}')
 
 
