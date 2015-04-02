@@ -149,8 +149,8 @@ def mount(dev, mountpoint, flags='', log=None):
         systemCall('mount %s %s %s' % (flags, dev, mountpoint),
                    log=log)
 
-def umount(mountpoint, log=None):
-    systemCall('umount %s' % mountpoint,
+def umount(mountpoint, flags='', log=None):
+    systemCall('umount %s %s' % (flags, mountpoint),
                log=log)
 
 def systemCall(cmd, sh=True, log=None):
@@ -232,10 +232,11 @@ def chrootedSystemCall(chrootDir, cmd, sh=True, mountPseudoFs=True, log=None):
         if mountPseudoFs:
             # handle devpts
             if path.exists(devpts):
-                umount(devpts)
-            umount(dev)
-            umount(sys)
-            umount(proc)
+                umount(devpts, '-lf')
+            # lazy is ok for pseudo fs
+            umount(dev, '-lf')
+            umount(sys, '-lf')
+            umount(proc, '-lf')
 
 
 

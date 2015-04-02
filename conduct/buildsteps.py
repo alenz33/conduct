@@ -36,7 +36,7 @@ from conduct.param import Parameter, oneof, none_or, dictof, listof, tupleof
 
 __all__ = ['BuildStep', 'SystemCall', 'Config', 'TmpDir', 'RmPath',
            'Partitioning', 'DevMapper', 'CreateFileSystem', 'Mount',
-           'MakeDirs', 'Debootstrap']
+           'MakeDirs', 'Debootstrap', 'ChrootedSystemCall']
 
 
 class BuildStepMeta(type):
@@ -286,6 +286,29 @@ class SystemCall(BuildStep):
             self.commandoutput = systemCall(self.command, log=self.log)
         finally:
             os.chdir(cwd)
+
+class ChrootedSystemCall(BuildStep):
+    '''
+    Build step to execute given shell command in a chroot environment.
+    '''
+    parameters = {
+        'command' : Parameter(type=str,
+                              description='command to execute'),
+        'chrootdir' : Parameter(type=str,
+                                 description='Chroot directory',
+                                 default='.'),
+    }
+
+    outparameters = {
+        'commandoutput' : Parameter(type=none_or(str),
+                                    description='Command output (if captured)',
+                                    default=None)
+    }
+
+    def run(self):
+        self.commandoutput = chrootedSystemCall(self.chrootdir,
+                                                self.command,
+                                                log=self.log)
 
 
 
