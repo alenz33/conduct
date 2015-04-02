@@ -591,6 +591,7 @@ class Debootstrap(BuildStep):
         qemuStatic = '/usr/bin/qemu-%s-static' % self.arch
         chrootQemuStaticPlace = path.join(self.destdir, 'usr', 'bin')
 
+        self.log.debug('Copy qemu static to chroot ...')
         shutil.copy(qemuStatic, chrootQemuStaticPlace)
         chrootedSystemCall(self.destdir,
                            'debootstrap/debootstrap --second-stage',

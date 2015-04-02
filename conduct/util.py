@@ -224,6 +224,7 @@ def chrootedSystemCall(chrootDir, cmd, sh=True, mountPseudoFs=True, log=None):
 
     try:
         # exec chrooted cmd
+        self.log.debug('Execute chrooted command ...')
         cmd = 'chroot %s %s' % (chrootDir, cmd)
         return systemCall(cmd, sh, log)
     finally:
