@@ -38,7 +38,7 @@ from sphinx.domains import ObjType
 from sphinx.domains.python import PyClassmember, PyModulelevel, PythonDomain
 from sphinx.ext.autodoc import ClassDocumenter
 
-from conduct.buildsteps import BuildStep
+from conduct.buildsteps.base import BuildStep
 
 
 class PyParameter(PyClassmember):

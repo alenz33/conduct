@@ -4,7 +4,45 @@ Conduct API
 Build steps
 -----------
 
-.. automodule:: conduct.buildsteps
+Base classes
+~~~~~~~~~~~~
+
+.. automodule:: conduct.buildsteps.base
+    :members:
+    :undoc-members:
+
+Debian specific build steps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: conduct.buildsteps.deb
+    :members:
+    :undoc-members:
+
+Device file build steps
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: conduct.buildsteps.dev
+    :members:
+    :undoc-members:
+
+File system build steps
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: conduct.buildsteps.fs
+    :members:
+    :undoc-members:
+
+Generic build steps
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: conduct.buildsteps.generic
+    :members:
+    :undoc-members:
+
+System call build steps
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: conduct.buildsteps.syscall
     :members:
     :undoc-members:
     
