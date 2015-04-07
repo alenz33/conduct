@@ -8,6 +8,7 @@ Contents:
 
    intro
    start
+   buildproc
    api
 
 
