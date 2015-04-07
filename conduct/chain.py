@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 import conduct
 from conduct.param import Parameter
-from conduct.util import loadChainDefinition, Referencer
+from conduct.util import loadChainDefinition, Referencer, importFromPath
 
 
 class Chain(object):
@@ -81,10 +81,11 @@ class Chain(object):
             entryType, entryName = definition[0].split(':')
 
             if entryType == 'step':
+                cls = importFromPath(entryName, ('conduct.buildsteps.',))
                 # for steps, the entryName should be a full path (mod.class)
-                clsMod, _, clsName = entryName.rpartition('.')
-                mod = __import__(clsMod)
-                cls = getattr(mod, clsName)
+                #clsMod, _, clsName = entryName.rpartition('.')
+                #mod = __import__(clsMod)
+                #cls = getattr(mod, clsName)
 
                 params = self._createReferencers(definition[1])
                 self.steps[name] = cls(name, params, self)

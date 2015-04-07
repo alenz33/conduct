@@ -39,66 +39,66 @@ parameters = {
 }
 
 # Build steps
-steps.imgdef   = Step('conduct.Config',
+steps.imgdef   = Step('generic.Config',
                         description='Read image definition file',
                         path='{chain.imgcfgdir}/{chain.imgname}.py',
                         retries=1)
 
-steps.tmpdir   = Step('conduct.TmpDir',
+steps.tmpdir   = Step('fs.TmpDir',
                         description='Generate build dir',)
 
-steps.imgfile   = Step('conduct.SystemCall',
+steps.imgfile   = Step('syscall.SystemCall',
                         description='Create empty image file',
                         command='dcfldd if=/dev/zero '
                         'of={steps.tmpdir.tmpdir}/{chain.imgname}.img '
                         'bs=1048576 count={steps.imgdef.config[size]}')
 
-steps.partition   = Step('conduct.Partitioning',
+steps.partition   = Step('dev.Partitioning',
                         description='Partition image file',
                         dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img',
                         partitions=[1020,1020])
 
-steps.devmap   = Step('conduct.DevMapper',
+steps.devmap   = Step('dev.DevMapper',
                         description='Map new image partitions to device files',
                         dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img')
 
-steps.mkfs1   = Step('conduct.CreateFileSystem',
+steps.mkfs1   = Step('fs.CreateFileSystem',
                         description='Create ext2 file systems for first image partition',
                         dev='{steps.devmap.mapped[0]}',
                         fstype='ext2')
 
-steps.mount   = Step('conduct.Mount',
+steps.mount   = Step('fs.Mount',
                         description='Mount first image partition',
                         dev='{steps.devmap.mapped[0]}',
                         mountpoint='{steps.tmpdir.tmpdir}/mount')
 
-steps.mkchrootdirs   = Step('conduct.MakeDirs',
+steps.mkchrootdirs   = Step('fs.MakeDirs',
                         description='Create some necessary dirs for the chroot environment',
                         dirs=[
                             '{steps.mount.mountpoint}/boot/grub',
                             ])
 
-steps.debootstrap   = Step('conduct.Debootstrap',
+steps.debootstrap   = Step('deb.Debootstrap',
                         description='Boostrap basic system',
                         distribution='{chain.distribution}',
                         arch='i386',
                         destdir='{steps.tmpdir.tmpdir}/mount')
 
 # replace by cp + sed steps
-steps.aptmain   = Step('conduct.SystemCall',
+steps.aptmain   = Step('syscall.SystemCall',
                         description='Add main apt repo',
                         command='echo "deb http://ftp.de.debian.org/debian/ '
                         '{chain.distribution} main" >> '
                         '{steps.mount.mountpoint}/etc/apt/sources.list')
 
 # replace by cp + sed steps
-steps.aptbackp   = Step('conduct.SystemCall',
+steps.aptbackp   = Step('syscall.SystemCall',
                         description='Add backport apt repo',
                         command='echo "deb http://ftp.de.debian.org/debian/ '
                         '{chain.distribution}-backports main" >> '
                         '{steps.mount.mountpoint}/etc/apt/sources.list')
 
-steps.aptupdate   = Step('conduct.ChrootedSystemCall',
+steps.aptupdate   = Step('syscall.ChrootedSystemCall',
                         description='Update package lists',
                         command='apt-get update',
                         chrootdir='{steps.mount.mountpoint}')

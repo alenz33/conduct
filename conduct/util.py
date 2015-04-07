@@ -110,6 +110,41 @@ def analyzeSystem():
 
     return info
 
+def importFromPath(import_name, prefixes=(), log=None):
+    """Imports an object based on a string.
+
+    The should be formatted like: imp.path.to.mod.objname
+    """
+    if log is None:
+        log = conduct.log
+
+    if '.' in import_name:
+        modname, obj = import_name.rsplit('.', 1)
+    else:
+        modname, obj = import_name, None
+    mod = None
+    fromlist = [obj] if obj else []
+    errors = []
+    for fullname in [modname] + [p + modname for p in prefixes]:
+        try:
+            mod = __import__(fullname, {}, {}, fromlist)
+        except ImportError as err:
+            errors.append('[%s] %s' % (fullname, err))
+        else:
+            break
+    if mod is None:
+        raise ImportError('Could not import %r: %s' %
+                          (import_name, ', '.join(errors)))
+    if not obj:
+        return mod
+    else:
+        try:
+            return getattr(mod, obj)
+        except AttributeError as e:
+            raise ImportError('Could not import %s.%s: %s' % (mod.__name__, obj, e))
+
+
+
 
 def loadConductConf(cfgPath=None):
     if cfgPath is None:
