@@ -163,7 +163,7 @@ class BuildStep(object):
         '''
         # log some bs stuff
         self.log.info('=' * 80)
-        self.log.info('Start build step: %s' % self.name)
+        self.log.info('Build: %s' % self.name)
         self.log.info(self.description)
         self.log.info('-' * 80)
 
@@ -186,7 +186,7 @@ class BuildStep(object):
         # log some bs stuff
         self.log.info('')
         self.log.info('%s' % 'SUCCESS' if success else 'FAILED')
-        self.log.info('=' * 80)
+        self.log.info('')
 
         if not success:
             raise RuntimeError('Build step failed')
@@ -197,11 +197,17 @@ class BuildStep(object):
         his method is a wrapper around cleanup() that does some logging and
         exception handling.
         '''
+
         if not self.wasRun:
+            self.log.info('Cleanup: Step was not run; Skip')
+            return
+
+        if self.cleanup.im_func == BuildStep.cleanup.im_func:
+            self.log.info('Cleanup: No custom cleanup; Skip')
             return
 
         self.log.info('=' * 80)
-        self.log.info('Cleanup build step: %s' % self.name)
+        self.log.info('Cleanup: %s' % self.name)
         self.log.info(self.description)
         self.log.info('-' * 80)
 
@@ -217,7 +223,7 @@ class BuildStep(object):
         finally:
             self.log.info('')
             self.log.info('%s' % resultStr)
-            self.log.info('=' * 80)
+            self.log.info('')
 
 
     def cleanup(self):
