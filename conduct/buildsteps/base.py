@@ -226,7 +226,7 @@ class BuildStep(object):
         This function shall be overwritten by the specific build steps
         and should do everything that's necessary build this step.
         '''
-        pass
+        raise NotImplemented('Buildstep not implemented (may be abstract)')
 
     def doWriteLoglevel(self, value):
         self.log.setLevel(LOGLEVELS[value])
