@@ -21,9 +21,8 @@
 # *****************************************************************************
 
 import conduct
-from conduct.util import  Referencer
 from conduct.loggers import LOGLEVELS, INVLOGLEVELS
-from conduct.param import Parameter, oneof
+from conduct.param import Parameter, oneof, Referencer
 
 class BuildStepMeta(type):
     '''

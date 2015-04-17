@@ -46,6 +46,25 @@ class Parameter(object):
         self.type(value)
 
 
+class Referencer(object):
+    def __init__(self, fmt):
+        self.fmt = fmt
+
+    def evaluate(self, chain, valType=str):
+        result = self.fmt.format(chain=Dataholder(chain.params),
+                            steps=Dataholder(chain.steps))
+
+        return valType(result)
+
+
+class Dataholder(object):
+    def __init__(self, modelDict):
+        self._modelDict = modelDict
+
+    def __getattr__(self, name):
+        if name in self._modelDict:
+            return self._modelDict[name]
+
 
 # validators for parameter's type
 
@@ -326,8 +345,22 @@ def host(val=''):
             raise ValueError('%r does not contain a valid port number' % val)
     return
 
+
 def callableobj(obj):
     if callable(obj):
         return obj
     raise ValueError('%r is not callable' % obj)
+
+
+class referencer_or(object):
+
+    def __init__(self, conv):
+        self.__doc__ = 'Referencer or %s' % convdoc(conv)
+        self.conv = conv
+
+    def __call__(self, val=None):
+        if isinstance(val, str):
+            return Referencer(val)
+        return self.conv(val)
+
 

@@ -37,30 +37,6 @@ from conduct.param import Parameter
 
 ## Utils classes
 
-class Referencer(object):
-    def __init__(self, fmt):
-        self.fmt = fmt
-
-    def evaluate(self, chain):
-        result = self.fmt.format(chain=Dataholder(chain.params),
-                            steps=Dataholder(chain.steps))
-
-        return result
-
-    def resolve(self, adr, chain):
-        parts = adr.split('.')
-        # chain.parameter
-        # or
-        # steps.stepname.parameter
-
-        if parts[0] == 'chain':
-            return chain.params[parts[1]]
-        elif parts[0] == 'steps':
-            step = chain.steps[parts[1]]
-            return getattr(step, parts[2])
-
-        raise RuntimeError('Could not resolve reference: %s' % adr)
-
 class AttrStringifier(object):
     def __getattr__(self, name):
         return name
@@ -74,15 +50,6 @@ class ObjectiveOrderedDict(object):
         if name == 'entries':
             return object.__setattr__(self, name, value)
         self.entries[name] = value
-
-
-class Dataholder(object):
-    def __init__(self, modelDict):
-        self._modelDict = modelDict
-
-    def __getattr__(self, name):
-        if name in self._modelDict:
-            return self._modelDict[name]
 
 
 ## Util funcs
@@ -273,18 +240,6 @@ def chrootedSystemCall(chrootDir, cmd, sh=True, mountPseudoFs=True, log=None):
             umount(sys, '-lf')
             umount(proc, '-lf')
 
-
-
-def dictToDataholder(d):
-    class Dataholder(object):
-        pass
-
-    result = Dataholder()
-
-    for key, value in d.items():
-        result.key = value
-
-    return result
 
 def chainPathToName(path):
     return path.replace(os.sep, ':')

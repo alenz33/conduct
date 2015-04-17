@@ -28,9 +28,8 @@ import shutil
 from os import path
 
 from conduct.buildsteps.base import BuildStep
-from conduct.util import systemCall, Referencer, ensureDirectory, mount, \
-    umount
-from conduct.param import Parameter, oneof, listof
+from conduct.util import systemCall, ensureDirectory, mount, umount
+from conduct.param import Parameter, oneof, listof, Referencer
 
 class TmpDir(BuildStep):
     parameters = {

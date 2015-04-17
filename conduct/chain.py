@@ -25,8 +25,8 @@ from os import path
 from collections import OrderedDict
 
 import conduct
-from conduct.param import Parameter
-from conduct.util import loadChainDefinition, Referencer, importFromPath
+from conduct.param import Referencer
+from conduct.util import loadChainDefinition, importFromPath
 
 
 class Chain(object):

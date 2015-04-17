@@ -24,13 +24,13 @@ from os import path
 
 from conduct.buildsteps.base import BuildStep
 from conduct.util import systemCall
-from conduct.param import Parameter, listof
+from conduct.param import Parameter, listof, referencer_or, Referencer
 
 class Partitioning(BuildStep):
     parameters = {
         'dev' : Parameter(type=str,
                                  description='Path to the device file'),
-        'partitions' : Parameter(type=listof(int),
+        'partitions' : Parameter(type=listof(referencer_or(int)),
                                  description='List of partition sizes (in MB)')
     }
 
@@ -50,6 +50,10 @@ class Partitioning(BuildStep):
         systemCall(shCmd, log=self.log)
 
     def _createPartitionCmds(self, index, size):
+        # TODO: better referencer handling: give step instead of chain
+        if isinstance(size, Referencer):
+            size = size.evaluate(self.chain, float)
+
         cmds = [
             'n' # new partition
         ]
