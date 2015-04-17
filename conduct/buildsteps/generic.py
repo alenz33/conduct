@@ -102,14 +102,12 @@ class Calculation(BuildStep):
     '''
     parameters = {
         'formula' : Parameter(type=str,
-                                 description='Formula to calculate',
-                                 default='1'),
+                                 description='Formula to calculate'),
     }
 
     outparameters = {
         'result' : Parameter(type=float,
-                                    description='Result of the calculation',
-                                    default=1)
+                                    description='Result of the calculation')
     }
     def run(self):
         self.result = float(eval(self.formula))
