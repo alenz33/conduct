@@ -20,6 +20,7 @@
 #
 # *****************************************************************************
 
+import re
 from os import path
 
 from conduct.buildsteps.base import BuildStep
@@ -82,7 +83,9 @@ class DevMapper(BuildStep):
 
     outparameters = {
         'mapped' : Parameter(type=list,
-                                description='Created device files',)
+                                description='Created device files',),
+        'loopdev' : Parameter(type=str,
+                                description='Used loop device',)
     }
 
     def run(self):
@@ -92,11 +95,17 @@ class DevMapper(BuildStep):
         # request a proper formated list of devs
         out = systemCall('kpartx -v -l -s %s' % self.dev, log=self.log)
 
+        # store loop dev
+        self.loopdev = re.findall('(/dev/.*?) ', out)[0]
+
         # store created device file paths
         self.mapped = []
         for line in out.splitlines():
             devFile = line.rpartition(':')[0].strip()
             self.mapped.append(path.join('/dev/mapper', devFile))
+
+        self.log.info('Loop device: %s' % self.loopdev)
+        self.log.info('Mapped devices: %s' % ', '.join(self.mapped))
 
     def cleanup(self):
         systemCall('kpartx -v -d -s %s' % self.dev,

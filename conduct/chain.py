@@ -96,7 +96,7 @@ class Chain(object):
     def _createReferencers(self, paramValues):
         for paramName, paramValue in paramValues.items():
             if isinstance(paramValue, str) \
-                and re.match('.*?(\{(.*?)\})+.*?', paramValue):
+                and re.findall('\{(.*?)\}', paramValue):
                     paramValues[paramName] = Referencer(paramValue)
 
         return paramValues

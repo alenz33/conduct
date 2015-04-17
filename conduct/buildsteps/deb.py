@@ -39,7 +39,7 @@ class Debootstrap(BuildStep):
         'distribution' : Parameter(type=str,
                                  description='Desired distribution'),
         # TODO: map archs? => system analyzer?
-        'arch' : Parameter(type=oneof('x86_64', 'i386', 'armel', 'armhf'),
+        'arch' : Parameter(type=str,
                                  description='Desired architecture'),
         'destdir' : Parameter(type=str,
                                  description='Destination directory'),

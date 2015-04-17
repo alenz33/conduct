@@ -31,6 +31,29 @@ from conduct.buildsteps.base import BuildStep
 from conduct.util import systemCall, ensureDirectory, mount, umount
 from conduct.param import Parameter, oneof, listof, Referencer
 
+
+class WriteFile(BuildStep):
+    parameters = {
+        'path' : Parameter(type=str,
+                                 description='Path to target file'),
+        'content' : Parameter(type=str,
+                                 description='Content wo write'),
+        'append' : Parameter(type=bool,
+                                 description='Append to the file '
+                                    '(if existing)',
+                                 default=False),
+    }
+
+    def run(self):
+        ensureDirectory(path.dirname(self.path))
+
+        openMode = 'a' if self.append else 'w'
+
+        self.log.info('Write to file %s ...' % self.path)
+        with open(self.path, openMode) as f:
+            f.write(self.content)
+
+
 class TmpDir(BuildStep):
     parameters = {
         'parentdir' : Parameter(type=str,

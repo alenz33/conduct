@@ -25,6 +25,19 @@
 This chain builds the image of FRM II's TACO/TANGO boxes.
 '''
 
+# Some specific global stuff
+
+SOURCES_LIST = '''
+deb http://ftp.de.debian.org/debian/ {chain.distribution} main
+deb http://ftp.de.debian.org/debian/ {chain.distribution}-backports main
+'''
+
+GRUB_DEV_MAP = '''
+(hd0)    {steps.devmap.loopdev}
+(hd0,1)  {steps.devmap.mapped[0]}
+'''
+
+
 # Short description which will be displayed on command line help.
 description = 'This chain builds the image of FRM II\'s TACO/TANGO boxes.'
 
@@ -46,7 +59,7 @@ steps.imgdef   = Step('generic.Config',
 # -8: some space for mbr and stuff
 steps.partsize   = Step('generic.Calculation',
                         description='Calculate partition size',
-                        formula='({steps.imgdef.config[size]} - 8) / 2')
+                        formula='({steps.imgdef.config[SIZE]} - 8) / 2')
 
 steps.tmpdir   = Step('fs.TmpDir',
                         description='Generate build dir',)
@@ -55,7 +68,7 @@ steps.imgfile   = Step('syscall.SystemCall',
                         description='Create empty image file',
                         command='dcfldd if=/dev/zero '
                         'of={steps.tmpdir.tmpdir}/{chain.imgname}.img '
-                        'bs=1048576 count={steps.imgdef.config[size]}')
+                        'bs=1048576 count={steps.imgdef.config[SIZE]}')
 
 steps.partition   = Step('dev.Partitioning',
                         description='Partition image file',
@@ -85,26 +98,39 @@ steps.mkchrootdirs   = Step('fs.MakeDirs',
 steps.debootstrap   = Step('deb.Debootstrap',
                         description='Boostrap basic system',
                         distribution='{chain.distribution}',
-                        arch='i386',
+                        arch='{steps.imgdef.config[ARCH]}',
                         destdir='{steps.tmpdir.tmpdir}/mount')
 
-# replace by cp + sed steps
-steps.aptmain   = Step('syscall.SystemCall',
-                        description='Add main apt repo',
-                        command='echo "deb http://ftp.de.debian.org/debian/ '
-                        '{chain.distribution} main" >> '
-                        '{steps.mount.mountpoint}/etc/apt/sources.list')
-
-# replace by cp + sed steps
-steps.aptbackp   = Step('syscall.SystemCall',
-                        description='Add backport apt repo',
-                        command='echo "deb http://ftp.de.debian.org/debian/ '
-                        '{chain.distribution}-backports main" >> '
-                        '{steps.mount.mountpoint}/etc/apt/sources.list')
+steps.srclst   = Step('fs.WriteFile',
+                        description='Create source list',
+                        path='{steps.mount.mountpoint}/etc/apt/sources.list',
+                        append=True,
+                        content=SOURCES_LIST)
 
 steps.aptupdate   = Step('syscall.ChrootedSystemCall',
                         description='Update package lists',
                         command='apt-get update',
                         chrootdir='{steps.mount.mountpoint}')
 
+#steps.kernel   = Step('syscall.ChrootedSystemCall',
+#                        description='Install kernel image',
+#                        command='apt-get install linux-image-{steps.imgdef.config[KERNEL]}',
+#                        chrootdir='{steps.mount.mountpoint}')
+
+#steps.grub   = Step('syscall.ChrootedSystemCall',
+#                        description='Install bootloader (grub2)',
+#                        command='apt-get install grub2',
+#                        chrootdir='{steps.mount.mountpoint}')
+
+steps.grubdevmap   = Step('fs.WriteFile',
+                        description='Create source list',
+                        path='{steps.mount.mountpoint}/boot/device.map',
+                        content=GRUB_DEV_MAP)
+
+steps.mbr   = Step('syscall.SystemCall',
+                        description='Install grub2 to mbr',
+                        command='grub-install --no-floppy --grub-mkdevicemap='
+                            '{steps.mount.mountpoint}/boot/device.map} '
+                            '--root-directory={steps.mount.mountpoint} '
+                            '{steps.devmap.loopdev}')
 
