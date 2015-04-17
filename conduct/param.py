@@ -324,4 +324,10 @@ def host(val=''):
                 raise ValueError()
         except ValueError:
             raise ValueError('%r does not contain a valid port number' % val)
-    return val
+    return
+
+def callableobj(obj):
+    if callable(obj):
+        return obj
+    raise ValueError('%r is not callable' % obj)
+
