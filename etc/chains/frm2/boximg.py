@@ -41,8 +41,12 @@ parameters = {
 # Build steps
 steps.imgdef   = Step('generic.Config',
                         description='Read image definition file',
-                        path='{chain.imgcfgdir}/{chain.imgname}.py',
-                        retries=1)
+                        path='{chain.imgcfgdir}/{chain.imgname}.py')
+
+# -8: some space for mbr and stuff
+steps.partsize   = Step('generic.Calculation',
+                        description='Calculate partition size',
+                        formula='({steps.imgdef.config[size]} - 8) / 2')
 
 steps.tmpdir   = Step('fs.TmpDir',
                         description='Generate build dir',)
@@ -56,7 +60,7 @@ steps.imgfile   = Step('syscall.SystemCall',
 steps.partition   = Step('dev.Partitioning',
                         description='Partition image file',
                         dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img',
-                        partitions=[1020,1020])
+                        partitions=['{steps.partsize.result}','{steps.partsize.result}'])
 
 steps.devmap   = Step('dev.DevMapper',
                         description='Map new image partitions to device files',

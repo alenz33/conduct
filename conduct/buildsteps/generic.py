@@ -94,3 +94,23 @@ class Config(BuildStep):
         del cfg['__builtins__']
 
         return cfg
+
+
+class Calculation(BuildStep):
+    '''
+    Build step to do some calculation.
+    '''
+    parameters = {
+        'formula' : Parameter(type=str,
+                                 description='Formula to calculate',
+                                 default='1'),
+    }
+
+    outparameters = {
+        'result' : Parameter(type=float,
+                                    description='Result of the calculation',
+                                    default=1)
+    }
+    def run(self):
+        self.result = float(eval(self.formula))
+
