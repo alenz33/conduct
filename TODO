@@ -13,3 +13,9 @@ postbuild
  * all bs - reversed order
   * cleanup
  * potential rollback (boostrap)
+
+
+--
+
+TODO:
+ * Referencer: give step instead of chain - would allow auto eval
