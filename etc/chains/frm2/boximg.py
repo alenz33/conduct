@@ -37,6 +37,18 @@ GRUB_DEV_MAP = '''
 (hd0,1)  {steps.devmap.mapped[0]}
 '''
 
+APT_PREF_BACKPORT = '''
+Package: *
+Pin: release a={chain.distribution}-backports
+Pin-Priority: 500
+'''
+
+POLICY_RC_D = '''
+#!/bin/sh
+echo "All runlevel operations denied by policy" >&2
+exit 101
+'''
+
 
 # Short description which will be displayed on command line help.
 description = 'This chain builds the image of FRM II\'s TACO/TANGO boxes.'
@@ -134,3 +146,19 @@ steps.mbr   = Step('syscall.SystemCall',
                             '--root-directory={steps.mount.mountpoint} '
                             '{steps.devmap.loopdev}')
 
+steps.pinbp   = Step('fs.WriteFile',
+                        description='Pin backports to normal level',
+                        path='{steps.mount.mountpoint}/etc/apt/preferences.d/backports',
+                        content=APT_PREF_BACKPORT)
+
+## INSERT HERE: old workaround: install taco first may be possible
+
+steps.policy   = Step('fs.WriteFile',
+                        description='Forbid execution of init scripts on installation',
+                        path='{steps.mount.mountpoint}/usr/sbin/policy-rc.d',
+                        content=POLICY_RC_D)
+
+steps.policyperm   = Step('syscall.ChrootedSystemCall',
+                        description='Enable policy-rc.d',
+                        command='chmod +x /usr/sbin/policy-rc.d',
+                        chrootdir='{steps.mount.mountpoint}')
