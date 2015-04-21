@@ -170,16 +170,18 @@ def systemCall(cmd, sh=True, log=None):
         '''
         Read, log and store output (if any) from processes pipes.
         '''
+        removeChars = '\r\n'
+
          # collect fds with new output
         fds = [entry[0] for entry in poller.poll()]
 
         if proc.stdout.fileno() in fds:
             for line in iter(proc.stdout.readline, ''):
-                log.debug(line.strip())
+                log.debug(line.translate(None, removeChars))
                 out.append(line)
         if proc.stderr.fileno() in fds:
             for line in iter(proc.stderr.readline, ''):
-                log.warning(line.strip())
+                log.warning(line.translate(None, removeChars))
 
 
     while True:

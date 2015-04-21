@@ -74,3 +74,26 @@ class Debootstrap(BuildStep):
                            'debootstrap/debootstrap --second-stage',
                            mountPseudoFs=False,
                            log=self.log)
+
+class InstallDebPkg(BuildStep):
+    parameters = {
+        'pkg' : Parameter(type=str,
+                                 description='Package to install'),
+        'chrootdir' : Parameter(type=str,
+                                 description='Chroot directory (if desired)',
+                                 default=''),
+    }
+
+    def run(self):
+        cmd = 'env DEBIAN_FRONTEND=noninteractive ' \
+                'apt-get install --yes --force-yes ' \
+                '--no-install-recommends ' \
+                '-o Dpkg::Options::="--force-overwrite" ' \
+                '-o Dpkg::Options::="--force-confnew" ' \
+                '%s' % self.pkg
+
+        if self.chrootdir:
+            chrootedSystemCall(self.chrootdir, cmd, log=self.log)
+        else:
+            systemCall(cmd, log=self.log)
+

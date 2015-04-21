@@ -112,15 +112,15 @@ steps.aptupdate   = Step('syscall.ChrootedSystemCall',
                         command='apt-get update',
                         chrootdir='{steps.mount.mountpoint}')
 
-#steps.kernel   = Step('syscall.ChrootedSystemCall',
-#                        description='Install kernel image',
-#                        command='apt-get install linux-image-{steps.imgdef.config[KERNEL]}',
-#                        chrootdir='{steps.mount.mountpoint}')
+steps.kernel   = Step('deb.InstallDebPkg',
+                        description='Install kernel image',
+                        pkg='linux-image-{steps.imgdef.config[KERNEL]}',
+                        chrootdir='{steps.mount.mountpoint}')
 
-#steps.grub   = Step('syscall.ChrootedSystemCall',
-#                        description='Install bootloader (grub2)',
-#                        command='apt-get install grub2',
-#                        chrootdir='{steps.mount.mountpoint}')
+steps.grub   = Step('deb.InstallDebPkg',
+                        description='Install bootloader (grub2)',
+                        pkg='grub2',
+                        chrootdir='{steps.mount.mountpoint}')
 
 steps.grubdevmap   = Step('fs.WriteFile',
                         description='Create source list',
@@ -130,7 +130,7 @@ steps.grubdevmap   = Step('fs.WriteFile',
 steps.mbr   = Step('syscall.SystemCall',
                         description='Install grub2 to mbr',
                         command='grub-install --no-floppy --grub-mkdevicemap='
-                            '{steps.mount.mountpoint}/boot/device.map} '
+                            '{steps.mount.mountpoint}/boot/device.map '
                             '--root-directory={steps.mount.mountpoint} '
                             '{steps.devmap.loopdev}')
 
