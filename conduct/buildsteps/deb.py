@@ -28,7 +28,7 @@ import conduct
 
 from conduct.buildsteps.base import BuildStep
 from conduct.util import systemCall, chrootedSystemCall
-from conduct.param import Parameter, oneof
+from conduct.param import Parameter, oneof, listof
 
 class Debootstrap(BuildStep):
     '''
@@ -43,10 +43,17 @@ class Debootstrap(BuildStep):
                                  description='Desired architecture'),
         'destdir' : Parameter(type=str,
                                  description='Destination directory'),
+        'includes' : Parameter(type=listof(str),
+                                 description='Packages to include',
+                                 default=[]),
     }
 
     def run(self):
         cmd = 'debootstrap --verbose --arch=%s ' % self.arch
+
+        if self.includes:
+            for pkg in self.includes:
+                cmd += '--include %s ' % pkg
 
         if self._isForeignArch():
             # separate first and second stage
@@ -82,18 +89,40 @@ class InstallDebPkg(BuildStep):
         'chrootdir' : Parameter(type=str,
                                  description='Chroot directory (if desired)',
                                  default=''),
+        'depsonly' : Parameter(type=bool,
+                                 description='Install dependencies only',
+                                 default=False),
     }
 
     def run(self):
-        cmd = 'env DEBIAN_FRONTEND=noninteractive ' \
+        self._syscall = lambda cmd: (chrootedSystemCall(self.chrootdir, cmd, log=self.log) \
+            if self.chrootdir else systemCall(cmd, log=self.log))
+        self._installCmd = 'env DEBIAN_FRONTEND=noninteractive ' \
                 'apt-get install --yes --force-yes ' \
                 '--no-install-recommends ' \
                 '-o Dpkg::Options::="--force-overwrite" ' \
                 '-o Dpkg::Options::="--force-confnew" ' \
-                '%s' % self.pkg
+                '%s'
 
-        if self.chrootdir:
-            chrootedSystemCall(self.chrootdir, cmd, log=self.log)
+        if self.depsonly:
+            deps = self._determineDependencies()
+
+            for pkg in deps:
+                self._syscall(self._installCmd % pkg)
         else:
-            systemCall(cmd, log=self.log)
+            # install actual pkg
+            self._syscall(self._installCmd % self.pkg)
+
+    def _determineDependencies(self):
+        try:
+            out = self._syscall('apt-cache show %s | grep Depends:' % self.pkg)
+        except RuntimeError as e:
+            self.log.exception(e)
+            return [] # no deps
+
+        out = out[9:] # strip 'Depends: '
+        depStrs = [entry.strip() for entry in out.split(',')]
+
+        return [entry.split(' ')[0] for entry in depStrs]
+
 

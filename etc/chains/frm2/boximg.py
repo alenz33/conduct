@@ -30,6 +30,7 @@ This chain builds the image of FRM II's TACO/TANGO boxes.
 SOURCES_LIST = '''
 deb http://ftp.de.debian.org/debian/ {chain.distribution} main
 deb http://ftp.de.debian.org/debian/ {chain.distribution}-backports main
+deb [trusted=yes] https://forge.frm2.tum.de/repos/apt/debian {chain.distribution} main extra
 '''
 
 GRUB_DEV_MAP = '''
@@ -111,7 +112,8 @@ steps.debootstrap   = Step('deb.Debootstrap',
                         description='Boostrap basic system',
                         distribution='{chain.distribution}',
                         arch='{steps.imgdef.config[ARCH]}',
-                        destdir='{steps.tmpdir.tmpdir}/mount')
+                        destdir='{steps.tmpdir.tmpdir}/mount',
+                        includes=['apt-transport-https', 'ca-certificates'])
 
 steps.srclst   = Step('fs.WriteFile',
                         description='Create source list',
@@ -162,3 +164,41 @@ steps.policyperm   = Step('syscall.ChrootedSystemCall',
                         description='Enable policy-rc.d',
                         command='chmod +x /usr/sbin/policy-rc.d',
                         chrootdir='{steps.mount.mountpoint}')
+
+steps.pkgbasedeps   = Step('deb.InstallDebPkg',
+                        description='Install base img pkg)',
+                        pkg='boxes-base',
+                        chrootdir='{steps.mount.mountpoint}',
+                        depsonly=True)
+
+steps.pkgplatformdeps   = Step('deb.InstallDebPkg',
+                        description='Install platform img pkg)',
+                        pkg='boxes-{steps.imgdef.config[PLATFORM]}',
+                        chrootdir='{steps.mount.mountpoint}',
+                        depsonly=True)
+
+steps.pkgimgdeps   = Step('deb.InstallDebPkg',
+                        description='Install specific img pkg)',
+                        pkg='boxes-{chain.imgname}',
+                        chrootdir='{steps.mount.mountpoint}',
+                        depsonly=True)
+
+steps.pkgbase   = Step('deb.InstallDebPkg',
+                        description='Install base img pkg)',
+                        pkg='boxes-base',
+                        chrootdir='{steps.mount.mountpoint}')
+
+steps.pkgplatform   = Step('deb.InstallDebPkg',
+                        description='Install platform img pkg)',
+                        pkg='boxes-{steps.imgdef.config[PLATFORM]}',
+                        chrootdir='{steps.mount.mountpoint}')
+
+steps.pkgimg   = Step('deb.InstallDebPkg',
+                        description='Install specific img pkg)',
+                        pkg='boxes-{chain.imgname}',
+                        chrootdir='{steps.mount.mountpoint}')
+
+steps.delpolicy   = Step('fs.RmPath',
+                        description='Reenable init.d invokation',
+                        path='{steps.mount.mountpoint}/usr/sbin/policy-rc.d')
+
