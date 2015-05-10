@@ -1,6 +1,8 @@
 CONvenient Construction Tool
 ============================
 
+**WORK IN PROGRESS - Usable but not feature complete, documented and released yet**
+
 `Documentation <http://conduct.rtfd.org>`_
 
 Author: `Alexander Lenz <mailto:alexander.lenz@posteo.de>`_
