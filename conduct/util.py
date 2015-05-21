@@ -187,7 +187,7 @@ def systemCall(cmd, sh=True, log=None):
     while True:
         if proc is None:
             # create and start process
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=sh)
+            proc = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=sh)
 
             # create poll select
             poller = select.poll()
