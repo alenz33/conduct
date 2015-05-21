@@ -160,12 +160,20 @@ def main(argv=None):
 
 
     conduct.log.info('Build chain: %s' % args.chain)
+
+    failed = False
     try:
         chain = Chain(args.chain, paramValues)
         chain.build()
     except Exception as e:
-        conduct.log.exception(e)
-        return 1
+        conduct.log.debug(e)
+        failed = True
+
+    conduct.log.info('')
+    conduct.log.info('')
+    conduct.log.info('================================================================================')
+    conduct.log.info('')
+    conduct.log.info('BUILD RESULT: %s' % 'FAILED' if failed else 'SUCCESS' )
 
     return 0
 

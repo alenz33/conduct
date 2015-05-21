@@ -46,11 +46,12 @@ class Chain(object):
         try:
             for step in self.steps.values():
                 step.build()
-        except Exception as e:
-            self.log.error('BUILD FAILED')
-
-        for step in reversed(self.steps.values()):
-            step.cleanupBuild()
+        except Exception:
+            self.log.error('CHAIN BUILD FAILED')
+            raise RuntimeError('Chain failed: ' % self.name)
+        finally:
+            for step in reversed(self.steps.values()):
+                step.cleanupBuild()
 
 
     @property
