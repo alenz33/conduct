@@ -206,7 +206,9 @@ def systemCall(cmd, sh=True, log=None):
 
     # check return code
     if proc.returncode != 0:
-        raise CalledProcessError(proc.returncode, cmd, ''.join(out))
+        raise RuntimeError(
+            CalledProcessError(proc.returncode, cmd, ''.join(out))
+            )
 
     return ''.join(out)
 
