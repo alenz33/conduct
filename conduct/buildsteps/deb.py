@@ -117,6 +117,7 @@ class InstallDebPkg(BuildStep):
             out = self._syscall('apt-cache show %s | grep Depends:' % self.pkg)
         except RuntimeError as e:
             self.log.exception(e)
+            self.log.warn('Therefore: Assume that there are no dependencies!')
             return [] # no deps
 
         out = out[9:] # strip 'Depends: '
