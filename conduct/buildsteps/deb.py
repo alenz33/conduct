@@ -52,8 +52,7 @@ class Debootstrap(BuildStep):
         cmd = 'debootstrap --verbose --arch=%s ' % self.arch
 
         if self.includes:
-            for pkg in self.includes:
-                cmd += '--include %s ' % pkg
+            cmd += '--include %s ' % ','.join(self.includes)
 
         if self._isForeignArch():
             # separate first and second stage
