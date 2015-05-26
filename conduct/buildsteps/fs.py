@@ -24,6 +24,7 @@ import os
 import time
 import hashlib
 import shutil
+import glob
 
 from os import path
 
@@ -173,3 +174,44 @@ class MakeDirs(BuildStep):
             for entry in self.dirs:
                 entry = Referencer(entry).evaluate(self.chain)
                 shutil.rmtree(entry)
+
+class MovePath(BuildStep):
+    '''
+    This build step moves/renames a path to a given destination path.
+    Shell wildcards are supported!
+    '''
+
+    parameters = {
+        'source' : Parameter(type=str,
+                                 description='Source path'),
+        'destination' : Parameter(type=str,
+                                 description='Destination path',
+                                 ),
+    }
+
+    def run(self):
+        self.log.info('Move %s to %s' % (self.source, self.destination))
+
+        for entry in glob.glob(self.source):
+            shutil.move(entry, self.destination)
+
+
+class CopyPath(BuildStep):
+    '''
+    This build step copies a path to a given destination path.
+    Shell wildcards are supported!
+    '''
+
+    parameters = {
+        'source' : Parameter(type=str,
+                                 description='Source path'),
+        'destination' : Parameter(type=str,
+                                 description='Destination path',
+                                 ),
+    }
+
+    def run(self):
+        self.log.info('Copy %s to %s' % (self.source, self.destination))
+
+        for entry in glob.glob(self.source):
+            shutil.copytree(entry, self.destination)
