@@ -50,6 +50,18 @@ echo "All runlevel operations denied by policy" >&2
 exit 101
 '''
 
+MOTD = '''
+Welcome to one of the FRM-II TACO/TANGO boxes!
+
+For more information about these boxes, contact the FRM-II
+instrument control group (ictrl@frm2.tum.de).
+
+Box information
+===============
+NAME:          {chain.imgname}
+DISTRIBUTION:  {chain.distribution}
+'''
+
 
 # Short description which will be displayed on command line help.
 description = 'This chain builds the image of FRM II\'s TACO/TANGO boxes.'
@@ -80,17 +92,17 @@ steps.tmpdir   = Step('fs.TmpDir',
 steps.imgfile   = Step('syscall.SystemCall',
                         description='Create empty image file',
                         command='dcfldd if=/dev/zero '
-                        'of={steps.tmpdir.tmpdir}/{chain.imgname}.img '
+                        'of={steps.tmpdir.tmpdir}/{chain.imgname}.full.img '
                         'bs=1048576 count={steps.imgdef.config[SIZE]}')
 
 steps.partition   = Step('dev.Partitioning',
                         description='Partition image file',
-                        dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img',
+                        dev='{steps.tmpdir.tmpdir}/{chain.imgname}.full.img',
                         partitions=['{steps.partsize.result}','{steps.partsize.result}'])
 
 steps.devmap   = Step('dev.DevMapper',
                         description='Map new image partitions to device files',
-                        dev='{steps.tmpdir.tmpdir}/{chain.imgname}.img')
+                        dev='{steps.tmpdir.tmpdir}/{chain.imgname}.full.img')
 
 steps.mkfs1   = Step('fs.CreateFileSystem',
                         description='Create ext2 file systems for first image partition',
@@ -201,4 +213,69 @@ steps.pkgimg   = Step('deb.InstallDebPkg',
 steps.delpolicy   = Step('fs.RmPath',
                         description='Reenable init.d invokation',
                         path='{steps.mount.mountpoint}/usr/sbin/policy-rc.d')
+
+steps.namevmlinuz   = Step('fs.MovePath',
+                        description='Rename kernel image to unspecific name',
+                        source='{steps.mount.mountpoint}/boot/vmlinuz*',
+                        destination='{steps.mount.mountpoint}/boot/vmlinuz')
+
+steps.nameinitrd   = Step('fs.MovePath',
+                        description='Rename init ramdisk to unspecific name',
+                        source='{steps.mount.mountpoint}/boot/initrd.img*',
+                        destination='{steps.mount.mountpoint}/boot/vmlinuz')
+
+# TODO: copy shadow file (argh pseudo security)
+# TODO: copy ssh files (argh pseudo security)
+
+steps.defaultsh   = Step('syscall.ChrootedSystemCall',
+                        description='Use zsh as default shell',
+                        command='chsh -s /usr/bin/zsh root',
+                        chrootdir='{steps.mount.mountpoint}')
+
+# TODO: generate taco_log.cfg
+
+steps.genicse   = Step('syscall.ChrootedSystemCall',
+                        description='Generate generic icse conf',
+                        command='/etc/init.d/genicseconf',
+                        chrootdir='{steps.mount.mountpoint}')
+
+steps.cleantaco   = Step('fs.RmPath',
+                        description='Remove superfluent taco stuff',
+                        path='{steps.mount.mountpoint}/opt/taco/share/taco/dbase/res/TEST')
+
+steps.disdynmotd   = Step('syscall.ChrootedSystemCall',
+                        description='Disable dynamic motd generation',
+                        command='update-rc.d motd remove',
+                        chrootdir='{steps.mount.mountpoint}')
+
+# TODO: create proper motd with all neccessary info (build time etc)
+steps.motd   = Step('fs.WriteFile',
+                        description='Create motd',
+                        path='{steps.mount.mountpoint}/etc/motd',
+                        append=True,
+                        content=MOTD)
+
+# TODO: unmount!
+
+steps.duppart   = Step('syscall.SystemCall',
+                        description='Dupilcate root partition',
+                        command='dcfldd if={steps.devmap.mapped[0]} of={steps.devmap.mapped[1]}')
+
+steps.mount2   = Step('fs.Mount',
+                        description='Mount second image partition',
+                        dev='{steps.devmap.mapped[1]}',
+                        mountpoint='{steps.tmpdir.tmpdir}/mount2')
+
+steps.fixfstab   = Step('syscall.ChrootedSystemCall',
+                        description='Fix fstab on second partition',
+                        command='sed -i -e "s/sda1/sda2/g" /etc/fstab',
+                        chrootdir='{steps.mount2.mountpoint}')
+
+# TODO: unmount!
+
+steps.partimg   = Step('syscall.SystemCall',
+                        description='Create part img file',
+                        command='dcfldd if={steps.devmap.mapped[0]} of={steps.tmpdir.tmpdir}/{chain.imgname}.part.img')
+
+# TODO: move imgs to destination dir
 
