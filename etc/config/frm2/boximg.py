@@ -9,6 +9,7 @@ part2dev = '/dev/mapper/loop%sp2'  # will be filled with the loop nr
 tmpldir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
 #imgcfgdir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'img'))
 imgcfgdir = '/home/alenz/Projects/Gerrit/boxes/debuild/usr/local/debuild/imgsys/cfg/img/'
+outdir = '/tmp'
 builddir = '/tmp/imgbuild'
 repreprobasedir = '/var/www/repos/apt/debian'
 distribution = 'wheezy'

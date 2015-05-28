@@ -74,6 +74,8 @@ parameters = {
                             description='Image config directory'),
     'distribution' : Parameter(type=str,
                             description='Distribution to boostrap onto the image'),
+    'outdir' : Parameter(type=str,
+                            description='Output directory for image files'),
 }
 
 # Build steps
@@ -116,6 +118,7 @@ steps.mount   = Step('fs.Mount',
 
 steps.mkchrootdirs   = Step('fs.MakeDirs',
                         description='Create some necessary dirs for the chroot environment',
+                        removeoncleanup=False,
                         dirs=[
                             '{steps.mount.mountpoint}/boot/grub',
                             ])
@@ -281,5 +284,12 @@ steps.partimg   = Step('syscall.SystemCall',
                         description='Create part img file',
                         command='dcfldd if={steps.devmap.mapped[0]} of={steps.tmpdir.tmpdir}/{chain.imgname}.part.img')
 
-# TODO: move imgs to destination dir
+steps.unmap   = Step('generic.TriggerCleanup',
+                        description='Unmap devices',
+                        step='devmap')
+
+steps.mvtooutdir   = Step('fs.MovePath',
+                        description='Move image files to output dir',
+                        source='{steps.tmpdir.tmpdir}/{chain.imgname}.*.img',
+                        destination='{chain.outdir}')
 
