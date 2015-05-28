@@ -51,7 +51,11 @@ class Chain(object):
             raise RuntimeError('Chain failed: ' % self.name)
         finally:
             for step in reversed(self.steps.values()):
-                step.cleanupBuild()
+                try:
+                    step.cleanupBuild()
+                except Exception:
+                    self.log.warn('Cleanup of buildstep failed;'
+                                 ' Continue with next one')
 
 
     @property
