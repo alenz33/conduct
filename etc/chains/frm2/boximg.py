@@ -255,7 +255,9 @@ steps.motd   = Step('fs.WriteFile',
                         append=True,
                         content=MOTD)
 
-# TODO: unmount!
+steps.umount   = Step('generic.TriggerCleanup',
+                        description='Unmount first image partition',
+                        step='mount')
 
 steps.duppart   = Step('syscall.SystemCall',
                         description='Dupilcate root partition',
@@ -271,7 +273,9 @@ steps.fixfstab   = Step('syscall.ChrootedSystemCall',
                         command='sed -i -e "s/sda1/sda2/g" /etc/fstab',
                         chrootdir='{steps.mount2.mountpoint}')
 
-# TODO: unmount!
+steps.umount2   = Step('generic.TriggerCleanup',
+                        description='Unmount second image partition',
+                        step='mount2')
 
 steps.partimg   = Step('syscall.SystemCall',
                         description='Create part img file',
