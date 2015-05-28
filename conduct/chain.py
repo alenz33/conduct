@@ -48,7 +48,7 @@ class Chain(object):
                 step.build()
         except Exception:
             self.log.error('CHAIN BUILD FAILED')
-            raise RuntimeError('Chain failed: ' % self.name)
+            raise RuntimeError('Chain failed: %s' % self.name)
         finally:
             for step in reversed(self.steps.values()):
                 try:
