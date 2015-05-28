@@ -112,3 +112,22 @@ class Calculation(BuildStep):
     def run(self):
         self.result = float(eval(self.formula))
 
+
+class TriggerCleanup(BuildStep):
+    '''
+    Build step that triggers the cleanup of another step.
+    '''
+    parameters = {
+        'step' : Parameter(type=str,
+                                 description='Step to clean up'),
+    }
+
+    def run(self):
+        self.log.info('Trigger cleanup of %s ...' % self.step)
+        if(self.step not in self.chain.steps):
+            self.error('Given step (%s) not found!' % self.step)
+            return
+
+        step = self.chain.steps[self.step]
+        step.cleanupBuild()
+
