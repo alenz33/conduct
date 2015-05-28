@@ -28,6 +28,6 @@ Basically, conduct's goals are:
     * automatic boostrapping
     * great selection of standard build steps
 
-Special thanks for contribution and other input to:
+Special thanks for contribution and other input (coffee) to:
 	* `Georg Brandl <mailto:georg@python.org>`_
 	* `Dr. Enrico Faulhaber <mailto:enrico.faulhaber@arcor.de>`_
