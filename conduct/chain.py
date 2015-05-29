@@ -63,7 +63,7 @@ class Chain(object):
         return self._chainDef['parameters']
 
     def _initLogger(self):
-        self.log = conduct.log.getChild(self.name, True)
+        self.log = conduct.app.log.getChild(self.name, True)
 
     def _applyParamValues(self, values):
         for name, definition in self.parameters.items():

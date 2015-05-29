@@ -67,7 +67,7 @@ class Debootstrap(BuildStep):
             self._strapSecondStage()
 
     def _isForeignArch(self):
-        return self.arch != conduct.cfg['system']['arch']
+        return self.arch != conduct.app.sysinfo['arch']
 
     def _strapSecondStage(self):
         self.log.info('Boostrap second stage ...')

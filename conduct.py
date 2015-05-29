@@ -28,32 +28,9 @@ Handles all command line arguments, creates and executes the given chain.
 
 import sys
 import os
-import argparse
 
 import conduct
-
-from conduct import loggers
-from conduct.chain import Chain
-from conduct.cli import parseArgv
-from conduct.util import loadChainDefinition, loadChainConfig, analyzeSystem
-
-
-def initLogging(daemonize=False):
-    '''
-    Initialize custom logging and configure it by global config.
-    '''
-    globalcfg = conduct.cfg['conduct']
-
-    conduct.log = loggers.ConductLogger('conduct')
-    loglevel = loggers.LOGLEVELS[globalcfg['loglevel']]
-    conduct.log.setLevel(loglevel)
-
-    # console logging for fg process
-    if not daemonize:
-        conduct.log.addHandler(loggers.ColoredConsoleHandler())
-
-    # logfile for fg and bg process
-    conduct.log.addHandler(loggers.LogfileHandler(globalcfg['logdir'], 'conduct'))
+from conduct.application import CliApplication
 
 
 def main(argv=None):
@@ -64,44 +41,8 @@ def main(argv=None):
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', 0)
 
-    # parse cli args
-    args = parseArgv(argv[1:])
-
-    # configure logging
-    initLogging()
-
-    # collect some system information
-    conduct.cfg['system'] = analyzeSystem()
-
-    chainDef = loadChainDefinition(args.chain)
-
-    # load chain config if any
-    paramValues = loadChainConfig(args.chain)
-
-    # override/apply cli params
-    for param in chainDef['parameters'].keys():
-        val = getattr(args, param)
-        if val is not None:
-            paramValues[param] = getattr(args, param)
-
-
-    conduct.log.info('Build chain: %s' % args.chain)
-
-    failed = False
-    try:
-        chain = Chain(args.chain, paramValues)
-        chain.build()
-    except Exception as e:
-        conduct.log.debug(e)
-        failed = True
-
-    conduct.log.info('')
-    conduct.log.info('')
-    conduct.log.info('================================================================================')
-    conduct.log.info('')
-    conduct.log.info('BUILD RESULT: %s' % 'FAILED' if failed else 'SUCCESS' )
-
-    return 0
+    conduct.app = CliApplication()
+    return conduct.app.run(argv[1:])
 
 
 if __name__ == '__main__':

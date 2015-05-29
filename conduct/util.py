@@ -55,7 +55,7 @@ class ObjectiveOrderedDict(object):
 ## Util funcs
 
 def analyzeSystem():
-    conduct.log.info('Analyze current system ...')
+    conduct.app.log.info('Analyze current system ...')
 
     # basic information
     info = platform.uname()
@@ -73,7 +73,7 @@ def analyzeSystem():
 
 
     for key, value in info.items():
-        conduct.log.debug('{:<10}: {}'.format(key, value))
+        conduct.app.log.debug('{:<10}: {}'.format(key, value))
 
     return info
 
@@ -83,7 +83,7 @@ def importFromPath(import_name, prefixes=(), log=None):
     The should be formatted like: imp.path.to.mod.objname
     """
     if log is None:
-        log = conduct.log
+        log = conduct.app.log
 
     if '.' in import_name:
         modname, obj = import_name.rsplit('.', 1)
@@ -111,21 +111,6 @@ def importFromPath(import_name, prefixes=(), log=None):
             raise ImportError('Could not import %s.%s: %s' % (mod.__name__, obj, e))
 
 
-
-
-def loadConductConf(cfgPath=None):
-    if cfgPath is None:
-        cfgPath = getDefaultConfigPath()
-
-    parser = SafeConfigParser()
-    parser.readfp(open(cfgPath))
-
-    cfg = {'conduct' : {
-        option : value for option, value in parser.items('conduct')
-    }}
-
-    return cfg
-
 def getDefaultConfigPath():
     inplacePath = path.join(path.dirname(__file__),
                                 '..',
@@ -133,12 +118,12 @@ def getDefaultConfigPath():
                                 'conduct.conf')
     if path.isfile(inplacePath):
         return inplacePath
-    return '/etc/entangle.conf'
+    return '/etc/conduct.conf'
 
 
 def logMultipleLines(strOrList, logFunc=None):
     if logFunc is None:
-        logFunc = conduct.log.info
+        logFunc = conduct.app.log.info
 
     if isinstance(strOrList, str):
         strOrList = strOrList.splitlines()
@@ -157,7 +142,7 @@ def umount(mountpoint, flags='', log=None):
 
 def systemCall(cmd, sh=True, log=None):
     if log is None:
-        log = conduct.log
+        log = conduct.app.log
 
     log.debug('System call [sh:%s]: %s' \
               % (sh, cmd))
@@ -214,7 +199,7 @@ def systemCall(cmd, sh=True, log=None):
 
 def chrootedSystemCall(chrootDir, cmd, sh=True, mountPseudoFs=True, log=None):
     if log is None:
-        log = conduct.log
+        log = conduct.app.log
 
     # determine mount points for pseudo fs
     proc = path.join(chrootDir, 'proc')
@@ -263,17 +248,20 @@ def loadPyFile(path, ns=None):
 
     return ns
 
-def loadChainDefinition(chainName):
-    # caching
-    if 'chains' not in conduct.cfg:
-        conduct.cfg['chains'] = {}
+def loadChainDefinition(chainName, app=None):
+    if app is None:
+        app = conduct.app
 
-    if chainName in conduct.cfg['chains']:
-        return conduct.cfg['chains'][chainName]
+    # caching
+    if 'chains' not in app.cfg:
+        app.cfg['chains'] = {}
+
+    if chainName in app.cfg['chains']:
+        return app.cfg['chains'][chainName]
 
 
     # determine chain file location
-    chainDir = conduct.cfg['conduct']['chaindefdir']
+    chainDir = app.cfg['chaindefdir']
     chainFile = path.join(chainDir, '%s.py' % chainNameToPath(chainName))
 
     if not path.exists(chainFile):
@@ -299,13 +287,13 @@ def loadChainDefinition(chainName):
     chainDef['steps'] = ns['steps'].entries
 
     # cache
-    conduct.cfg['chains'][chainName] = chainDef
+    app.cfg['chains'][chainName] = chainDef
 
     return chainDef
 
 def loadChainConfig(chainName):
     # determine chain file location
-    cfgDir = conduct.cfg['conduct']['chaincfgdir']
+    cfgDir = conduct.app.cfg['chaincfgdir']
     cfgFile = path.join(cfgDir, '%s.py' % chainNameToPath(chainName))
 
     if path.exists(cfgFile):

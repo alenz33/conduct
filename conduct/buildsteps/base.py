@@ -238,7 +238,7 @@ class BuildStep(object):
         if self.chain is not None:
             self.log = self.chain.log.getChild(self.name)
         else:
-            self.log = conduct.log.getChild(self.name)
+            self.log = conduct.app.log.getChild(self.name)
         self.log.setLevel(LOGLEVELS[self.loglevel])
 
     def _applyParams(self, paramValues):
