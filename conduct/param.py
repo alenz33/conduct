@@ -26,6 +26,8 @@ import re
 from os import path
 from collections import Iterable
 
+import conduct
+
 
 class Parameter(object):
     '''
@@ -52,7 +54,11 @@ class Referencer(object):
 
     def evaluate(self, chain, valType=str):
         result = self.fmt.format(chain=Dataholder(chain.params),
-                            steps=Dataholder(chain.steps))
+                            steps=Dataholder(chain.steps),
+                            app=conduct.app,
+                            cfg=conduct.app.cfg,
+                            sysinfo=conduct.app.sysinfo,
+                            buildinfo=conduct.app.buildinfo)
 
         return valType(result)
 
