@@ -22,6 +22,7 @@
 
 # TODO: Refactor q&d applications!!
 
+import logging
 import argparse
 from ConfigParser import SafeConfigParser
 
@@ -100,6 +101,7 @@ class ConductApplication(object):
         Initialize custom logging and configure it by global config.
         '''
 
+        logging.setLoggerClass(loggers.ConductLogger)
         self.log = loggers.ConductLogger('conduct')
         loglevel = loggers.LOGLEVELS[self.cfg['loglevel']]
         self.log.setLevel(loglevel)

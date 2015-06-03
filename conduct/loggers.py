@@ -43,6 +43,13 @@ LOGLEVELS = {'debug': DEBUG, 'info': INFO, 'warning': WARNING, 'error': ERROR}
 INVLOGLEVELS = {value : key for key, value in LOGLEVELS.items()}
 
 class ConductLogger(Logger):
+    maxLogNameLength = 0
+
+    def __init__(self, *args, **kwargs):
+        Logger.__init__(self, *args, **kwargs)
+        ConductLogger._storeLoggerNameLength(self)
+
+
     def getChild(self, suffix, ownDir=False):
         child = Logger.getChild(self, suffix)
         child.setLevel(self.getEffectiveLevel())
@@ -66,6 +73,13 @@ class ConductLogger(Logger):
             log = log.parent
 
         return result
+
+    @staticmethod
+    def _storeLoggerNameLength(logObj):
+        # store max logger name length for formatting
+        if len(logObj.name) > ConductLogger.maxLogNameLength:
+            ConductLogger.maxLogNameLength = len(logObj.name)
+
 
 
 class ConsoleFormatter(Formatter):
@@ -92,7 +106,7 @@ class ConsoleFormatter(Formatter):
         record.message = record.getMessage()
         levelno = record.levelno
         datefmt = self.colorize('lightgray', '[%(asctime)s] ')
-        namefmt = '%(name)-25s: '
+        namefmt = '%(name)-' + str(ConductLogger.maxLogNameLength) + 's: '
         if levelno <= DEBUG:
             fmtstr = self.colorize('darkgray', '%s%%(message)s' % namefmt)
         elif levelno <= INFO:
