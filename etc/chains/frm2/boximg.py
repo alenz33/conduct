@@ -56,10 +56,14 @@ Welcome to one of the FRM-II TACO/TANGO boxes!
 For more information about these boxes, contact the FRM-II
 instrument control group (ictrl@frm2.tum.de).
 
-Box information
-===============
+Image information
+=================
 NAME:          {chain.imgname}
 DISTRIBUTION:  {chain.distribution}
+ARCH:          {steps.imgdef.config[ARCH]}
+
+BUILD TIME:    {buildinfo[ctime]}
+BUILT ON:      {sysinfo[hostname]}
 '''
 
 
