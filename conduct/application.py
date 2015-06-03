@@ -22,6 +22,7 @@
 
 # TODO: Refactor q&d applications!!
 
+import time
 import logging
 import argparse
 from ConfigParser import SafeConfigParser
@@ -56,15 +57,17 @@ class ConductApplication(object):
 
     def build(self, chainName, paramOverrides= {}):
         self._analyzeSystem()
-
         self.log.info('Build chain: %s' % chainName)
-        self._buildinfo['chain'] = chainName
-
         self.log.debug('Load chain default params ...')
         chainParams = loadChainConfig(chainName)
 
         self.log.debug('Apply param overrides ...')
         chainParams.update(paramOverrides)
+
+        # add some metadata to buildinfo
+        self._buildinfo['chain'] = chainName
+        self._buildinfo['time'] = time.time()
+        self._buildinfo['ctime'] = time.ctime()
 
         failed = False
         try:
