@@ -41,16 +41,20 @@ class AttrStringifier(object):
     def __getattr__(self, name):
         return name
 
-# TODO: Better name
-class ObjectiveOrderedDict(object):
-    def __init__(self):
-        self.entries = OrderedDict()
+class OrderedAttrDict(OrderedDict):
+    def __init__(self, *args, **kwargs):
+        OrderedDict.__init__(self, *args, **kwargs)
+        self._init = True
 
     def __setattr__(self, name, value):
-        if name == 'entries':
-            return object.__setattr__(self, name, value)
-        self.entries[name] = value
+        if not hasattr(self, '_init'):
+            return OrderedDict.__setattr__(self, name, value)
+        return OrderedDict.__setitem__(self, name, value)
 
+    def __getattr__(self, name):
+        if not hasattr(self, '_init'):
+            return OrderedDict.__getattr__(self, name)
+        return OrderedDict.__getitem__(self, name)
 
 ## Util funcs
 
@@ -273,7 +277,7 @@ def loadChainDefinition(chainName, app=None):
         'Parameter' : Parameter,
         'Step' : lambda cls, **params: ('step:%s' % cls, params),
         'Chain' : lambda cls, **params: ('chain:%s' % cls, params),
-        'steps' : ObjectiveOrderedDict(),
+        'steps' : OrderedAttrDict(),
     }
 
     # execute and extract all the interesting data
@@ -284,7 +288,8 @@ def loadChainDefinition(chainName, app=None):
     for entry in ['description', 'parameters']:
         chainDef[entry] = ns[entry]
 
-    chainDef['steps'] = ns['steps'].entries
+    print(ns['steps'].keys())
+    chainDef['steps'] = ns['steps']
 
     # cache
     app.cfg['chains'][chainName] = chainDef
