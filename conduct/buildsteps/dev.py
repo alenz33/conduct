@@ -89,11 +89,11 @@ class DevMapper(BuildStep):
     }
 
     def run(self):
+        # request a proper formated list of created devs
+        out = systemCall('kpartx -v -l -s %s' % self.dev, log=self.log)
+
         # create device files
         systemCall('kpartx -v -a -s %s' % self.dev, log=self.log)
-
-        # request a proper formated list of devs
-        out = systemCall('kpartx -v -l -s %s' % self.dev, log=self.log)
 
         # store loop dev
         self.loopdev = re.findall('(/dev/.*?) ', out)[0]
