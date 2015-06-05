@@ -66,6 +66,12 @@ BUILD TIME:    {buildinfo.ctime}
 BUILT ON:      {sysinfo.hostname}
 '''
 
+IMGFILE_TARGET = '{sysinfo.arch}.{chain.imgname}.' \
+    '{buildinfo.localtime.tm_mday}_{buildinfo.localtime.tm_mon}_' \
+    '{buildinfo.localtime.tm_year}'
+IMGFILE_FULL = '{steps.tmpdir.tmpdir}/%s.full.img' % IMGFILE_TARGET
+IMGFILE_PART = '{steps.tmpdir.tmpdir}/%s.part.img' % IMGFILE_TARGET
+
 
 # Short description which will be displayed on command line help.
 description = 'This chain builds the image of FRM II\'s TACO/TANGO boxes.'
@@ -80,6 +86,9 @@ parameters = {
                             description='Distribution to boostrap onto the image'),
     'outdir' : Parameter(type=str,
                             description='Output directory for image files'),
+    'builddir' : Parameter(type=str,
+                            description='Build directory for image files',
+                            default='/tmp'),
 }
 
 # Build steps
@@ -93,22 +102,23 @@ steps.partsize   = Step('generic.Calculation',
                         formula='({steps.imgdef.config[SIZE]} - 8) / 2')
 
 steps.tmpdir   = Step('fs.TmpDir',
-                        description='Generate build dir',)
+                        description='Generate build dir',
+                        parentdir='{chain.builddir}')
 
 steps.imgfile   = Step('syscall.SystemCall',
                         description='Create empty image file',
                         command='dcfldd if=/dev/zero '
-                        'of={steps.tmpdir.tmpdir}/{chain.imgname}.full.img '
-                        'bs=1048576 count={steps.imgdef.config[SIZE]}')
+                        'of=%s '
+                        'bs=1048576 count={steps.imgdef.config[SIZE]}' % IMGFILE_FULL)
 
 steps.partition   = Step('dev.Partitioning',
                         description='Partition image file',
-                        dev='{steps.tmpdir.tmpdir}/{chain.imgname}.full.img',
+                        dev=IMGFILE_FULL,
                         partitions=['{steps.partsize.result}','{steps.partsize.result}'])
 
 steps.devmap   = Step('dev.DevMapper',
                         description='Map new image partitions to device files',
-                        dev='{steps.tmpdir.tmpdir}/{chain.imgname}.full.img')
+                        dev=IMGFILE_FULL)
 
 steps.mkfs1   = Step('fs.CreateFileSystem',
                         description='Create ext2 file systems for first image partition',
@@ -286,7 +296,7 @@ steps.umount2   = Step('generic.TriggerCleanup',
 
 steps.partimg   = Step('syscall.SystemCall',
                         description='Create part img file',
-                        command='dcfldd if={steps.devmap.mapped[0]} of={steps.tmpdir.tmpdir}/{chain.imgname}.part.img')
+                        command='dcfldd if={steps.devmap.mapped[0]} of=%s' % IMGFILE_PART)
 
 steps.unmap   = Step('generic.TriggerCleanup',
                         description='Unmap devices',
@@ -294,6 +304,6 @@ steps.unmap   = Step('generic.TriggerCleanup',
 
 steps.mvtooutdir   = Step('fs.MovePath',
                         description='Move image files to output dir',
-                        source='{steps.tmpdir.tmpdir}/{chain.imgname}.*.img',
+                        source='{steps.tmpdir.tmpdir}/%s.*.img' % IMGFILE_TARGET,
                         destination='{chain.outdir}')
 
