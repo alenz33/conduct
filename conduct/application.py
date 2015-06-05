@@ -66,8 +66,11 @@ class ConductApplication(object):
 
         # add some metadata to buildinfo
         self._buildinfo['chain'] = chainName
-        self._buildinfo['time'] = time.time()
-        self._buildinfo['ctime'] = time.ctime()
+
+        timestamp = time.time()
+        self._buildinfo['timestamp'] = timestamp
+        self._buildinfo['localtime'] = time.localtime(timestamp)
+        self._buildinfo['ctime'] = time.ctime(timestamp)
 
         failed = False
         try:
