@@ -193,7 +193,17 @@ class MovePath(BuildStep):
         self.log.info('Move %s to %s' % (self.source, self.destination))
 
         for entry in glob.glob(self.source):
-            shutil.move(entry, self.destination)
+            self.log.debug('Copy %s to %s' % (entry, self.destination))
+            if os.path.isfile(entry):
+                shutil.copy(entry, self.destination)
+            else:
+                shutil.copytree(entry, self.destination)
+
+            self.log.debug('Remove %s ...' % entry)
+            if os.path.isfile(entry):
+                os.remove(entry)
+            else:
+                shutil.rmtree(entry)
 
 
 class CopyPath(BuildStep):
