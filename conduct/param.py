@@ -27,6 +27,7 @@ from os import path
 from collections import Iterable
 
 import conduct
+from conduct.util.container import OrderedAttrDict
 
 
 class Parameter(object):
@@ -56,9 +57,10 @@ class Referencer(object):
         result = self.fmt.format(chain=Dataholder(chain.params),
                             steps=Dataholder(chain.steps),
                             app=conduct.app,
-                            cfg=conduct.app.cfg,
-                            sysinfo=conduct.app.sysinfo,
-                            buildinfo=conduct.app.buildinfo)
+                            cfg=OrderedAttrDict(conduct.app.cfg),
+                            sysinfo=OrderedAttrDict(conduct.app.sysinfo),
+                            buildinfo=OrderedAttrDict(conduct.app.buildinfo),
+                            )
 
         return valType(result)
 

@@ -62,8 +62,8 @@ NAME:          {chain.imgname}
 DISTRIBUTION:  {chain.distribution}
 ARCH:          {steps.imgdef.config[ARCH]}
 
-BUILD TIME:    {buildinfo[ctime]}
-BUILT ON:      {sysinfo[hostname]}
+BUILD TIME:    {buildinfo.ctime}
+BUILT ON:      {sysinfo.hostname}
 '''
 
 

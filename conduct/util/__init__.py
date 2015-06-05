@@ -33,7 +33,7 @@ from os import path
 from subprocess import Popen, PIPE, CalledProcessError
 
 import conduct
-from conduct.param import Parameter
+from conduct.param import Parameter, OrderedAttrDict
 
 ## Utils classes
 
@@ -117,6 +117,7 @@ def importFromPath(import_name, prefixes=(), log=None):
 
 def getDefaultConfigPath():
     inplacePath = path.join(path.dirname(__file__),
+                                '..',
                                 '..',
                                 'etc',
                                 'conduct.conf')
