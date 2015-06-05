@@ -67,7 +67,7 @@ BUILT ON:      {sysinfo.hostname}
 '''
 
 IMGFILE_TARGET = '{sysinfo.arch}.{chain.imgname}.' \
-    '{buildinfo.localtime.tm_mday}_{buildinfo.localtime.tm_mon}_' \
+    '{buildinfo.localtime.tm_mday:0>2}_{buildinfo.localtime.tm_mon:0>2}_' \
     '{buildinfo.localtime.tm_year}'
 IMGFILE_FULL = '{steps.tmpdir.tmpdir}/%s.full.img' % IMGFILE_TARGET
 IMGFILE_PART = '{steps.tmpdir.tmpdir}/%s.part.img' % IMGFILE_TARGET
