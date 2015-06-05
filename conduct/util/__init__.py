@@ -289,7 +289,6 @@ def loadChainDefinition(chainName, app=None):
     for entry in ['description', 'parameters']:
         chainDef[entry] = ns[entry]
 
-    print(ns['steps'].keys())
     chainDef['steps'] = ns['steps']
 
     # cache
