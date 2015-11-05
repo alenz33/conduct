@@ -239,7 +239,7 @@ steps.namevmlinuz   = Step('fs.MovePath',
 steps.nameinitrd   = Step('fs.MovePath',
                         description='Rename init ramdisk to unspecific name',
                         source='{steps.mount.mountpoint}/boot/initrd.img*',
-                        destination='{steps.mount.mountpoint}/boot/vmlinuz')
+                        destination='{steps.mount.mountpoint}/boot/initrd.img')
 
 # TODO: copy shadow file (argh pseudo security)
 # TODO: copy ssh files (argh pseudo security)
