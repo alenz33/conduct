@@ -25,6 +25,8 @@
 This chain builds debian packages at the MLZ facility.
 '''
 
+description = 'This chain builds debian packages at the MLZ facility.'
+
 parameters = {
     'pbuildercfgdir' : Parameter(type=str,
                             description='Config directory for pbuilder',
@@ -56,6 +58,31 @@ parameters = {
                             description='Build without checkout (assume existing checkout)',
                             default=False),
 }
+
+steps.projmap   = Step('generic.Map',
+                        description='Map project to pkg name',
+                        input='{chain.project}',
+                        mapping=[
+                            ('frm2/boxes/spodi-nguide', 'boxes-spodi-nguide'),
+                            ('frm2/tango/common/ttxutils', 'libttxutils'),
+                            ('frm2/general/icse/icse-core', 'icse-core'),
+                            ('frm2/general/boxtools', 'boxtools'),
+                            ('frm2/general/marche', 'marche'),
+                            ('frm2/general/qmesydaq', 'qmesydaq'),
+                            ('frm2/general/libformulaevaluator', 'libformulaevaluator'),
+                            ('frm2/general/munin-plugins', 'frm2-munin-plugins'),
+                            ('frm2/taco/common/tacodevel', 'taco-common'),
+                            ('frm2/taco/general/mdis', 'mdis-ext'),
+                            ('frm2/taco/applications/client/cryostat', 'taco-apps-cryostat'),
+                            ('frm2/taco/(.*?)/(.*)', 'taco-{0}-{1}'),
+                            ('frm2/tango/pytango', 'python-pytango'),
+                            ('frm2/tango/device/(.*)', 'entangle-device-{0}'),
+                            ('frm2/tango/(.*?)/(.*)', 'tango-{0}-{1}'),
+                            ('frm2/metapkg/(.*?)/(.*)', 'metapkg-{0}-{1}'),
+                            ('frm2/nicos/nicos-(.*)', 'nicos-{0}'),
+                            ('frm2/(.*?)/(.*?)/(.*)', '{1}-{2}'),
+                            ('frm2/(.*?)/(.*)', '{0}-{1}'),
+                        ],)
 
 # TODO: Map repo <-> pkg
 # TODO: determine fitting pbuilder cfg

@@ -21,8 +21,10 @@
 # *****************************************************************************
 
 import ConfigParser
+import re
 
 from os import path
+from collections import OrderedDict
 
 from conduct.buildsteps.base import BuildStep
 from conduct.param import Parameter, oneof
@@ -130,4 +132,31 @@ class TriggerCleanup(BuildStep):
 
         step = self.chain.steps[self.step]
         step.cleanupBuild()
+
+class Map(BuildStep):
+    '''
+    Maps a value to another one.
+    Supports regex matching and priority matching by order.
+    '''
+    parameters = {
+        'input' : Parameter(type=str,
+                                 description='Input to map'),
+        'mapping' : Parameter(type=OrderedDict,
+                                 description='Mapping ordered dict'),
+    }
+
+    outparameters = {
+        'result' : Parameter(type=str,
+                                    description='Result of the calculation')
+    }
+    def run(self):
+        for pattern, subst in self.mapping.items():
+            match = re.match(pattern, self.input)
+
+            if match is not None:
+                self.result = subst.format(*match.groups())
+                self.log.debug('Map %r via %r to %r' % (self.input, pattern, self.result))
+                return
+
+        raise RuntimeError('No suitable mapping entry found')
 
