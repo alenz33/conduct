@@ -84,8 +84,12 @@ steps.projmap   = Step('generic.Map',
                             ('frm2/(.*?)/(.*)', '{0}-{1}'),
                         ],)
 
-# TODO: Map repo <-> pkg
-# TODO: determine fitting pbuilder cfg
+steps.projclone   = Step('scm.GitClone',
+                        description='Clone project for building',
+                        url='{chain.gitbaseurl}/{chain.project}',
+                        destdir='{chain.checkoutdir}/{steps.projmap.result}',)
+
+# TODO: determine fitting pbuilder cfg {chain.pbuildercfgdir}/pbuilder-{chain.arch}-{chain.distribution}.config
 # TODO: checkout git if desired
 # TODO: inject sources.list (hook?)
 # TODO: apt-get update inside jail (hook?)
