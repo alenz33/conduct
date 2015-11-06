@@ -91,6 +91,11 @@ steps.projclone   = Step('scm.GitClone',
                         uselastversion=True,
                         asbranch='build')
 
+steps.pdebuild   = Step('deb.Pdebuild',
+                        description='Build debian package',
+                        sourcedir='{chain.checkoutdir}/{steps.projmap.result}',
+                       )#config='{chain.pbuildercfgdir}/pbuilder-{chain.arch}-{chain.distribution}.config')
+
 # TODO: determine fitting pbuilder cfg {chain.pbuildercfgdir}/pbuilder-{chain.arch}-{chain.distribution}.config
 # TODO: checkout git if desired
 # TODO: inject sources.list (hook?)

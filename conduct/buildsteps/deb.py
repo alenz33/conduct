@@ -22,6 +22,7 @@
 
 import shutil
 
+import os
 from os import path
 
 import conduct
@@ -124,5 +125,28 @@ class InstallDebPkg(BuildStep):
         depStrs = [entry.strip() for entry in out.split(',')]
 
         return [entry.split(' ')[0] for entry in depStrs]
+
+
+class Pdebuild(BuildStep):
+    '''
+    Build debian package via pdebuild.
+    '''
+    parameters = {
+        'sourcedir' : Parameter(type=str,
+                                 description='Source directory'),
+        'config' : Parameter(type=str,
+                                 description='Pbuilder config file '
+                                 '(pbuilderrc)',
+                                 default='/etc/pbuilderrc'),
+    }
+
+    def run(self):
+        cwd = os.getcwd()
+        try:
+            os.chdir(self.sourcedir)
+            cmd = 'pdebuild --configfile %s' % self.config
+            systemCall(cmd, log=self.log)
+        finally:
+            os.chdir(cwd)
 
 
