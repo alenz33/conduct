@@ -124,6 +124,10 @@ class BuildStep(object):
                                   description='Number of retries to execute the '
                                     'build step',
                                   default=0),
+        'condition' : Parameter(type=str,
+                                  description='Precondition for this build '
+                                  'step. Step will be skipped if not fulfilled',
+                                  default=''),
     }
 
     outparameters = {
@@ -151,6 +155,10 @@ class BuildStep(object):
         self.log.info('Build: %s' % self.name)
         self.log.info(self.description)
         self.log.info('-' * 80)
+
+        if not self._isConditionFulfilled():
+            self.log.info('Precondition not fulfilled; Skip')
+            return
 
         success = False
 
@@ -249,3 +257,9 @@ class BuildStep(object):
             elif paramDef.default is None:
                 raise RuntimeError('%s: Mandatory parameter %s is missing'
                                    % (self.name, name))
+
+    def _isConditionFulfilled(self):
+        if not self.condition:
+            return True
+
+        return eval(self.condition)
