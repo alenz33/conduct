@@ -87,7 +87,9 @@ steps.projmap   = Step('generic.Map',
 steps.projclone   = Step('scm.GitClone',
                         description='Clone project for building',
                         url='{chain.gitbaseurl}/{chain.project}',
-                        destdir='{chain.checkoutdir}/{steps.projmap.result}',)
+                        destdir='{chain.checkoutdir}/{steps.projmap.result}',
+                        uselastversion=True,
+                        asbranch='build')
 
 # TODO: determine fitting pbuilder cfg {chain.pbuildercfgdir}/pbuilder-{chain.arch}-{chain.distribution}.config
 # TODO: checkout git if desired

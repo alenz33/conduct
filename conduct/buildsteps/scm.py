@@ -21,6 +21,7 @@
 # *****************************************************************************
 
 import shutil
+from distutils.version import LooseVersion
 
 from conduct.buildsteps.base import BuildStep
 from conduct.param import Parameter
@@ -38,6 +39,11 @@ class GitClone(BuildStep):
                                  description='Destination directory to clone '
                                  'to (will be completely removed during '
                                  'cleanup!'),
+        'uselastversion' : Parameter(type=bool,
+                                 description='Try to determine the last release '
+                                 'version (by analyzing the tags) and use it '
+                                 'as target',
+                                 default=False),
         'target' : Parameter(type=str,
                                  description='Checkout target (tag or branch)',
                                  default=''),
@@ -48,7 +54,10 @@ class GitClone(BuildStep):
     }
 
     def run(self):
-        systemCall('git clone %s %s' % (self.url, self.destdir))
+        systemCall('git clone %s %s' % (self.url, self.destdir), log=self.log)
+
+        if self.uselastversion:
+            self.target = self._determineLastVersion()
 
         if self.target:
             checkoutCmd = 'git --git-dir=%s/.git --work-tree=%s checkout %s' % (
@@ -58,7 +67,21 @@ class GitClone(BuildStep):
             if self.asbranch:
                 checkoutCmd += ' -b %s' % self.asbranch
 
-            systemCall(checkoutCmd)
+            systemCall(checkoutCmd, log=self.log)
 
     def cleanup(self):
         shutil.rmtree(self.destdir)
+
+    def _determineLastVersion(self):
+        self.log.debug('Determine last version ...')
+        # find last tag
+        tags = systemCall('git --git-dir=%s/.git --work-tree=%s tag -l' % (
+            self.destdir,
+            self.destdir),
+            log=self.log).splitlines()
+
+        tags = sorted([LooseVersion(entry.strip()) for entry in tags])
+        result = tags[-1].vstring
+        self.log.debug('Last version: %s' % result)
+        return result
+
