@@ -24,6 +24,7 @@ import os
 import logging
 import platform
 import select
+import fcntl
 import time
 
 
@@ -155,6 +156,8 @@ def systemCall(cmd, sh=True, log=None):
     out = []
     proc = None
     poller = None
+    outBuf = ['']
+    errBuf = ['']
 
     def pollOutput():
         '''
@@ -166,12 +169,34 @@ def systemCall(cmd, sh=True, log=None):
         fds = [entry[0] for entry in poller.poll()]
 
         if proc.stdout.fileno() in fds:
-            for line in iter(proc.stdout.readline, ''):
-                log.debug(line.translate(None, removeChars))
-                out.append(line)
+            while True:
+                try:
+                    tmp = proc.stdout.read(100)
+                except IOError:
+                    break
+                outBuf[0] += tmp
+
+                while '\n' in outBuf[0]:
+                    line, _, outBuf[0] = outBuf[0].partition('\n')
+                    log.debug(line)
+                    out.append(line + '\n')
+
+                if not tmp:
+                    break
         if proc.stderr.fileno() in fds:
-            for line in iter(proc.stderr.readline, ''):
-                log.warning(line.translate(None, removeChars))
+            while True:
+                try:
+                    tmp = proc.stderr.read(100)
+                except IOError:
+                    break
+                errBuf[0] += tmp
+
+                while '\n' in errBuf[0]:
+                    line, _, errBuf[0] = errBuf[0].partition('\n')
+                    log.warning(line)
+
+                if not tmp:
+                    break
 
 
     while True:
@@ -181,6 +206,12 @@ def systemCall(cmd, sh=True, log=None):
 
             # create poll select
             poller = select.poll()
+
+            flags = fcntl.fcntl(proc.stdout, fcntl.F_GETFL)
+            fcntl.fcntl(proc.stdout, fcntl.F_SETFL, flags| os.O_NONBLOCK)
+
+            flags = fcntl.fcntl(proc.stderr, fcntl.F_GETFL)
+            fcntl.fcntl(proc.stderr, fcntl.F_SETFL, flags| os.O_NONBLOCK)
 
             # register pipes to polling
             poller.register(proc.stdout, select.POLLIN)
