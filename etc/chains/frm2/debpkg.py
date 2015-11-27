@@ -25,6 +25,22 @@
 This chain builds debian packages at the MLZ facility.
 '''
 
+##
+BACKPORT_PKG_HOST_ENTRY = 'deb http://ftp.de.debian.org/debian {chain.distribution}-backports main'
+LOCAL_PKG_HOST_ENTRY = 'deb [trusted=yes] http://172.25.2.104/repos {chain.distribution}/'
+
+APT_UPDATE_SCRIPT='''#!/bin/sh
+
+sleep 20
+echo 'echo "%s" > /etc/apt/sources.list.d/backport.list'
+echo 'echo "%s" > /etc/apt/sources.list.d/local.list'
+echo 'apt-get update'
+echo 'exit'
+
+''' % (BACKPORT_PKG_HOST_ENTRY, LOCAL_PKG_HOST_ENTRY)
+
+##
+
 description = 'This chain builds debian packages at the MLZ facility.'
 
 parameters = {
@@ -91,10 +107,26 @@ steps.projclone   = Step('scm.GitClone',
                         uselastversion=True,
                         asbranch='build')
 
+steps.updateSrc = Step('fs.WriteFile',
+                        description='Create script for sources.list creation',
+                        path='{chain.checkoutdir}/{steps.projmap.result}/apt-update.sh',
+                        content=APT_UPDATE_SCRIPT)
+
+steps.upPkglist   = Step('deb.PBuilderExecCmds',
+                        description='Update pkg lists inside jail',
+                        save=True,
+                        config='{chain.pbuildercfgdir}/pbuilderrc-{chain.arch}.config',
+                        cmds=[
+                            'echo "%s" > /etc/apt/sources.list.d/backport.list' % BACKPORT_PKG_HOST_ENTRY,
+                            'echo "%s" > /etc/apt/sources.list.d/local.list' % LOCAL_PKG_HOST_ENTRY,
+                            'apt-get update'
+                            ])
+
 steps.pdebuild   = Step('deb.Pdebuild',
                         description='Build debian package',
                         sourcedir='{chain.checkoutdir}/{steps.projmap.result}',
-                       )#config='{chain.pbuildercfgdir}/pbuilder-{chain.arch}-{chain.distribution}.config')
+                        #config='{chain.pbuildercfgdir}/pbuilderrc-{chain.arch}-{chain.distribution}.config')
+                        config='{chain.pbuildercfgdir}/pbuilderrc-{chain.arch}.config')
 
 # TODO: determine fitting pbuilder cfg {chain.pbuildercfgdir}/pbuilder-{chain.arch}-{chain.distribution}.config
 # TODO: checkout git if desired

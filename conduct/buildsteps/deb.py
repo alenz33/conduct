@@ -21,6 +21,8 @@
 # *****************************************************************************
 
 import shutil
+import time
+import hashlib
 
 import os
 from os import path
@@ -148,5 +150,57 @@ class Pdebuild(BuildStep):
             systemCall(cmd, log=self.log)
         finally:
             os.chdir(cwd)
+
+class PBuilderExecCmds(BuildStep):
+    '''
+    Execute commands inside a pbuilder jail.
+    '''
+    parameters = {
+        'cmds' : Parameter(type=listof(str),
+                                 description='List of commands to execute'),
+        'save' : Parameter(type=bool,
+                                 description='Save jail after execution',
+                                 default=False),
+        'config' : Parameter(type=str,
+                                 description='Pbuilder config file '
+                                 '(pbuilderrc)',
+                                 default='/etc/pbuilderrc'),
+    }
+
+    def __init__(self, name, paramValues, chain=None):
+        BuildStep.__init__(self, name, paramValues, chain)
+        self._scriptfile = None
+
+    def run(self):
+        # create tmp script file name
+        self._scriptfile = '/tmp/conduct.PBuilderExecCmds.%s.sh' \
+                           % hashlib.md5(str(time.time)).hexdigest()
+
+        # create script with commands
+        script = '#!/bin/sh\n'
+
+        self.cmds.append('exit') # exit the jail at the end
+        for cmd in self.cmds:
+            script += '''echo '%s' \n''' % cmd
+
+        self.log.debug('Generated script:\n%s' % script)
+
+        with open(self._scriptfile, 'w') as f:
+            f.write(script)
+
+        # pipe commands to pbuilder
+        cmd = 'sh %s | pbuilder --login ' % self._scriptfile
+
+        if self.save:
+            cmd += '--save-after-login '
+
+        cmd += '--configfile %s' % self.config
+
+        systemCall(cmd, log=self.log)
+
+    def cleanup(self):
+        if self._scriptfile and path.exists(self._scriptfile):
+            os.remove(self._scriptfile)
+
 
 
